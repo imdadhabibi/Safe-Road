@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#10283f" />
+  <meta name="description" content="SafeRoad — informasi keselamatan jalan, pemetaan historis kecelakaan, peringatan bahaya, dan pelaporan jalan berlubang." />
+  <title>SafeRoad — Informasi Keselamatan Jalan</title>
+  <link rel="preconnect" href="https://unpkg.com"><link rel="preconnect" href="https://tile.openstreetmap.org"><link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="SafeRoad Beranda">
+      <span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2 27 7v8c0 7.5-4.6 12.3-11 15C9.6 27.3 5 22.5 5 15V7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 8v4m0 4v3m0 3v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span>
+      <span><strong>SafeRoad</strong><small>Informasi & peringatan keselamatan jalan</small></span>
+    </a>
+    <nav class="nav"><a href="#peta">Peta keselamatan</a><a href="#analisis">Analisis data</a><a href="#lapor">Laporkan jalan</a></nav>
+    <button class="btn btn-dark" id="openAdmin">Admin <span aria-hidden="true">↗</span></button>
+  </header>
+
+  <main id="home">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="pulse"></span> ROAD SAFETY MONITOR</span>
+        <h1>Kenali bahaya jalan.<br><em>Perjalanan lebih waspada.</em></h1>
+        <p>SafeRoad menggabungkan data historis kecelakaan, lokasi bahaya yang telah diverifikasi admin, serta laporan kerusakan jalan dari pengguna.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#peta">Jelajahi peta <span>↓</span></a><a class="text-link" href="#lapor">Laporkan jalan berlubang <span>→</span></a></div>
+        <div class="hero-note"><span class="live-dot"></span> Peringatan GPS aktif saat izin lokasi diberikan dan lokasi bahaya sudah terverifikasi.</div>
+      </div>
+      <div class="hero-visual" aria-hidden="true"><div class="visual-card"><div class="visual-top"><span class="mini-label">PETA RISIKO</span><span class="status-pill"><span></span> GPS READY</span></div><div class="mini-map"><div class="road road-a"></div><div class="road road-b"></div><div class="road road-c"></div><span class="map-pin red-pin">!</span><span class="map-pin amber-pin">!</span><span class="map-pin blue-pin">⌖</span><span class="map-tag tag-one">Blackspot</span><span class="map-tag tag-two">Jalan berlubang</span><span class="map-tag tag-three">Posisi Anda</span></div><div class="visual-foot"><span><b class="dot-red"></b> Blackspot</span><span><b class="dot-orange"></b> Blacklink</span><span><b class="dot-yellow"></b> Lubang terverifikasi</span></div></div><div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div></div>
+    </section>
+
+    <section class="stats-grid shell" id="data">
+      <article class="stat-card"><span class="stat-icon navy">▤</span><span class="stat-label">Insiden tercatat</span><strong id="totalIncidents">—</strong><small id="dataPeriod">Memuat periode</small></article>
+      <article class="stat-card"><span class="stat-icon red">✚</span><span class="stat-label">Korban meninggal</span><strong id="fatalities">—</strong><small>Berdasarkan kolom data sumber</small></article>
+      <article class="stat-card"><span class="stat-icon orange">⌖</span><span class="stat-label">Kandidat Blackspot</span><strong id="blackspotCount">—</strong><small>Label awal lembar CUSUM*</small></article>
+      <article class="stat-card"><span class="stat-icon blue">⌁</span><span class="stat-label">Kandidat Blacklink</span><strong id="blacklinkCount">—</strong><small>Perlu validasi metode dan lokasi</small></article>
+    </section>
+
+    <section class="section shell" id="peta">
+      <div class="section-heading"><div><span class="eyebrow">PETA INTERAKTIF</span><h2>Pantau risiko di sekitar Anda</h2><p>Titik kecelakaan historis berasal dari koordinat GPS pada file sumber. Peringatan hanya memakai lokasi bahaya yang sudah diverifikasi dan memiliki koordinat valid.</p></div><button class="btn btn-outline" id="locateMe">◎ Aktifkan GPS</button></div>
+      <div class="map-layout"><div class="map-panel"><div id="map" aria-label="Peta keselamatan jalan"></div><div class="map-disclaimer"><span>ⓘ</span> Titik merah pada peta menunjukkan kejadian historis, bukan otomatis Blackspot. Kandidat Blackspot/Blacklink dari lembar analisis belum dipakai untuk geofence karena koordinat segmennya tidak valid.</div></div>
+        <aside class="map-side">
+          <div class="side-card"><h3>Lapisan peta</h3>
+            <label class="layer-toggle"><span class="layer-symbol red-symbol"></span><span><b>Riwayat kecelakaan</b><small>Titik GPS dari data sumber</small></span><input type="checkbox" id="showIncidents" checked></label>
+            <label class="layer-toggle"><span class="layer-symbol orange-symbol"></span><span><b>Blackspot</b><small>Titik yang divalidasi admin</small></span><input type="checkbox" id="showBlackspots" checked></label>
+            <label class="layer-toggle"><span class="layer-symbol purple-symbol"></span><span><b>Blacklink</b><small>Segmen dengan geometri valid</small></span><input type="checkbox" id="showBlacklinks" checked></label>
+            <label class="layer-toggle"><span class="layer-symbol yellow-symbol"></span><span><b>Jalan berlubang</b><small>Laporan terverifikasi admin</small></span><input type="checkbox" id="showPotholes" checked></label>
+            <label class="layer-toggle"><span class="layer-symbol blue-symbol"></span><span><b>Posisi saya</b><small>Lokasi perangkat</small></span><input type="checkbox" id="showMyLocation" checked></label>
+          </div>
+          <div class="side-card alert-card"><span class="alert-icon">!</span><div><h3>Peringatan keselamatan</h3><p id="alertText">Aktifkan GPS untuk memeriksa lokasi bahaya terverifikasi di sekitar Anda.</p><small id="gpsStatus">GPS belum diaktifkan</small></div></div>
+          <div class="side-card"><h3>Lokasi berisiko</h3><div class="hazard-tabs"><button class="tab active" data-tab="blackspot">Blackspot</button><button class="tab" data-tab="blacklink">Blacklink</button><button class="tab" data-tab="pothole">Lubang</button></div><div id="hazardList" class="hazard-list"><p class="muted">Memuat data…</p></div></div>
+          <a class="google-link" id="openGoogleMaps" href="https://maps.google.com" target="_blank" rel="noopener">Buka Google Maps <span>↗</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section shell" id="analisis">
+      <div class="section-heading"><div><span class="eyebrow">ANALISIS AWAL</span><h2>Data kecelakaan dan kandidat lokasi</h2><p>Hasil ini merangkum file Excel yang diunggah. Klasifikasi Blackspot/Blacklink tetap perlu diperiksa sebelum dijadikan informasi operasional.</p></div><a class="btn btn-outline" href="data/analysis-candidates.json" download>Unduh data analisis</a></div>
+      <div class="analysis-grid"><article class="analysis-card"><div class="analysis-head"><div><span class="eyebrow">HASIL LEMBAR KERJA</span><h3>Kandidat Blackspot</h3></div><span class="status-pill warning-pill">Perlu validasi</span></div><p class="muted">Daftar berikut mengikuti label pada lembar CUSUM. Lokasi/STA disimpan sebagai teks karena koordinat segmen pada lembar sumber tidak valid sebagai lintang-bujur.</p><div class="table-wrap"><table><thead><tr><th>Ruas jalan</th><th>STA</th><th>Kecelakaan</th><th>SI</th></tr></thead><tbody id="blackspotTable"><tr><td colspan="4">Memuat data…</td></tr></tbody></table></div></article>
+        <article class="analysis-card"><div class="analysis-head"><div><span class="eyebrow">RUAS BERURUTAN</span><h3>Kandidat Blacklink</h3></div><span class="status-pill warning-pill">Perlu validasi</span></div><p class="muted">Daftar kandidat tidak menampilkan garis di peta sampai geometri ruas diverifikasi dari sumber pemetaan yang dapat dipertanggungjawabkan.</p><div id="blacklinkCards" class="candidate-list"><p>Memuat data…</p></div></article></div>
+      <div class="audit-banner"><div class="audit-icon">!</div><div><strong>Catatan integritas analisis</strong><p>Formula pada lembar CUSUM perlu diperbaiki sebelum angka kandidat dinyatakan sebagai hasil CUSUM tervalidasi. Website tidak menggunakan titik koordinat segmen tersebut untuk memicu peringatan GPS.</p></div></div>
+    </section>
+
+    <section class="section shell report-section" id="lapor"><div class="report-intro"><span class="eyebrow">KONTRIBUSI PENGGUNA</span><h2>Temukan jalan berlubang?</h2><p>Laporkan melalui foto dan lokasi GPS. Laporan masuk dengan status menunggu dan hanya menjadi titik bahaya publik setelah diverifikasi admin.</p><div class="steps"><div><span>01</span><b>Ambil foto</b><small>Foto permukaan jalan dengan jelas.</small></div><div><span>02</span><b>Kirim lokasi</b><small>Gunakan GPS atau masukkan koordinat.</small></div><div><span>03</span><b>Admin memverifikasi</b><small>Titik tampil setelah disetujui.</small></div></div></div>
+      <form id="reportForm" class="report-form"><div class="form-title"><span class="form-icon">＋</span><div><h3>Form laporan jalan</h3><p>Kolom bertanda * wajib diisi.</p></div></div>
+        <div class="form-row"><label>Nama pelapor (opsional)<input id="reporterName" maxlength="80" placeholder="Nama Anda"></label><label>Nama ruas jalan *<input id="roadName" required maxlength="140" placeholder="Contoh: Jl. Diponegoro"></label></div>
+        <label>Deskripsi kondisi *<textarea id="description" required maxlength="800" rows="3" placeholder="Jelaskan kondisi, arah jalan, atau patokan lokasi…"></textarea></label>
+        <div class="form-row coord-row"><label>Latitude *<input id="latitude" type="number" step="any" min="-90" max="90" required placeholder="-7.7"></label><label>Longitude *<input id="longitude" type="number" step="any" min="-180" max="180" required placeholder="109.2"></label><button type="button" class="btn btn-outline coord-btn" id="useCurrentLocation">◎ Ambil GPS</button></div>
+        <label class="upload-zone" for="photo"><span class="upload-icon">▧</span><b>Unggah foto kondisi jalan *</b><small>JPG, PNG, atau WEBP · maksimal 5 MB</small><input id="photo" type="file" accept="image/jpeg,image/png,image/webp" required><span id="fileName" class="file-name">Belum ada foto dipilih</span></label>
+        <label class="consent"><input id="consent" type="checkbox" required><span>Saya mengirimkan laporan dengan itikad baik dan memahami laporan perlu diverifikasi admin.</span></label>
+        <button class="btn btn-primary submit-btn" type="submit" id="submitReport">Kirim laporan <span>→</span></button><p class="form-feedback" id="reportFeedback" role="status"></p><p class="privacy-note">Jangan mengunggah foto wajah, pelat nomor, atau data pribadi yang tidak diperlukan.</p>
+      </form>
+    </section>
+
+    <section class="section shell process-section"><div class="section-heading"><div><span class="eyebrow">TRANSPARANSI</span><h2>Dari laporan ke penanganan</h2></div></div><div class="process-grid"><article><span class="process-num">01</span><h3>Laporan masuk</h3><p>Foto, koordinat, waktu, dan keterangan disimpan dengan status menunggu.</p></article><article><span class="process-num">02</span><h3>Verifikasi admin</h3><p>Admin memeriksa bukti visual, kelengkapan, lokasi, serta duplikasi laporan.</p></article><article><span class="process-num">03</span><h3>Dipublikasikan</h3><p>Jika disetujui, titik tampil pada peta sebagai jalan berlubang terverifikasi.</p></article><article><span class="process-num">04</span><h3>Peringatan dan tindak lanjut</h3><p>Pengguna di sekitar lokasi dapat menerima peringatan saat situs dibuka dan GPS aktif.</p></article></div></section>
+    <section class="data-note shell"><span class="note-icon">i</span><div><b>Catatan penggunaan</b><p>SafeRoad merupakan prototipe pendukung informasi, bukan layanan darurat dan bukan pengganti rambu atau kewaspadaan pengemudi. Peringatan GPS memerlukan izin lokasi, website HTTPS, serta lokasi bahaya yang telah diverifikasi.</p></div></section>
+  </main>
+
+  <footer class="footer"><a class="brand footer-brand" href="#home"><span class="brand-mark"><svg viewBox="0 0 32 32"><path d="M16 2 27 7v8c0 7.5-4.6 12.3-11 15C9.6 27.3 5 22.5 5 15V7z" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 8v4m0 4v3m0 3v2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></span><span><strong>SafeRoad</strong><small>Keselamatan jalan berbasis data</small></span></a><p>Prototipe edukasi · Bukan layanan tanggap darurat</p><p>© <span id="year"></span> SafeRoad</p></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal-backdrop hidden" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminTitle"><div class="admin-modal"><button class="modal-close" id="closeAdmin" aria-label="Tutup">×</button>
+    <div id="adminLoginView"><span class="eyebrow">AREA TERBATAS</span><h2 id="adminTitle">Login admin</h2><p>Masuk untuk memverifikasi laporan dan mengelola lokasi bahaya.</p><form id="adminLoginForm"><label>Email admin<input id="adminEmail" type="email" required autocomplete="username" placeholder="admin@contoh.id"></label><label>Password<input id="adminPassword" type="password" required autocomplete="current-password" placeholder="Password Supabase"></label><button class="btn btn-primary submit-btn" type="submit">Masuk ke dashboard</button><p class="form-feedback" id="adminFeedback" role="status"></p></form><p class="admin-hint">Login admin memerlukan konfigurasi Supabase dan akun yang tercantum pada tabel <code>admin_users</code>.</p></div>
+    <div id="adminDashboardView" class="hidden"><span class="eyebrow">DASHBOARD ADMIN</span><h2>Verifikasi & lokasi bahaya</h2><p id="adminWelcome"></p><div class="admin-toolbar"><button class="btn btn-outline" id="refreshReports">Muat ulang</button><button class="btn btn-outline" id="adminLogout">Keluar</button></div>
+      <div class="admin-section"><h3>Laporan jalan berlubang</h3><div id="adminReports" class="admin-reports"><p class="muted">Memuat laporan…</p></div></div>
+      <div class="admin-section"><h3>Tambah lokasi bahaya terverifikasi</h3><p class="muted small-text">Gunakan hanya koordinat yang telah dicek melalui survei, peta, atau sumber resmi. Form ini diperlukan untuk mengaktifkan peringatan Blackspot/Blacklink dengan koordinat valid.</p>
+        <form id="hazardForm" class="hazard-form"><label>Jenis lokasi<select id="hazardType" required><option value="blackspot">Blackspot</option><option value="blacklink">Blacklink (titik representatif)</option><option value="pothole">Jalan berlubang</option></select></label><label>Nama ruas *<input id="hazardRoad" required maxlength="140" placeholder="Nama jalan"></label><label>Nama lokasi/STA *<input id="hazardTitle" required maxlength="160" placeholder="Contoh: STA 4+200 atau simpang X"></label><label>Latitude titik / awal segmen *<input id="hazardLat" required type="number" step="any" min="-90" max="90"></label><label>Longitude titik / awal segmen *<input id="hazardLng" required type="number" step="any" min="-180" max="180"></label><label class="blacklink-only hidden">Latitude akhir segmen *<input id="hazardEndLat" type="number" step="any" min="-90" max="90"></label><label class="blacklink-only hidden">Longitude akhir segmen *<input id="hazardEndLng" type="number" step="any" min="-180" max="180"></label><label>Jarak peringatan dari titik/garis (meter) *<input id="hazardRadius" required type="number" min="50" max="2000" value="300"></label><label>Catatan sumber/verifikasi<textarea id="hazardNotes" rows="2" maxlength="500" required placeholder="Catat sumber koordinat / tanggal survei"></textarea></label><button class="btn btn-primary" type="submit">Simpan lokasi terverifikasi</button><p class="form-feedback" id="hazardFeedback" role="status"></p></form>
+      </div><div class="admin-section"><h3>Lokasi bahaya aktif</h3><div id="adminHazards" class="admin-reports"><p class="muted">Memuat lokasi…</p></div></div>
+    </div>
+  </div></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script><script src="app.js"></script>
+</body>
+</html>
