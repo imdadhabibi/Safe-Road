@@ -1,0 +1,18 @@
+# Sensitive source datasets and credentials
+private-data/
+data/
+secrets/
+*.xlsx
+*.xls
+*.xlsm
+.env
+.env.*
+!.env.example
+
+# Build and local tooling
+node_modules/
+dist/
+build/
+coverage/
+.DS_Store
+Thumbs.db
