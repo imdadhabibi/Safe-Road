@@ -67,7 +67,8 @@
     const fs=state.accidents.features||[];
     $('accident-layer-count').textContent=fmt(fs.length)+' titik GPS dari sheet Fix';
     $('stat-accidents').textContent=fmt(fs.length);
-    $('stat-fatalities').textContent=fmt(fs.reduce((n,f)=>n+Number(f.properties?.fatalities||0),0));
+    // Total fatalities is from the source workbook Fix (1,081 events; 195 fatalities). Coordinate archive is intentionally public-coordinate-only.
+    $('stat-fatalities').textContent='195';
     $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Blackspot/Blacklink tersedia pada tabel analisis; geometri peta menunggu validasi GIS.';
     if(fs.length)state.map.fitBounds(state.accidentLayer.getBounds().pad(.06));
   }
