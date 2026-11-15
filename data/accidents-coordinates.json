@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "format": "gzip+base64-json-coordinate-pairs",
+  "records": 1081,
+  "coordinatePrecision": 6,
+  "parts": [
+    "data/accidents-coordinates.part-01.b64",
+    "data/accidents-coordinates.part-02.b64",
+    "data/accidents-coordinates.part-03.b64",
+    "data/accidents-coordinates.part-04.b64",
+    "data/accidents-coordinates.part-05.b64",
+    "data/accidents-coordinates.part-06.b64"
+  ]
+}
