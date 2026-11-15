@@ -5,15 +5,31 @@
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const state = { map:null, accidents:null, blackspots:[], blacklinks:[], accidentLayer:null, potholeLayer:null, userMarker:null, accuracy:null, selected:'blackspot', page:1, size:12, picking:false, watchId:null, profile:null };
   const files = {
-    accidents:'data/accidents-2025.geojson.gz.b64',
+    accidents:'data/accidents-coordinates.json',
     blackspot:'data/blackspot-segments.json.gz.b64',
     blacklink:'data/blacklink-roads.json.gz.b64'
   };
   async function getJSON(path) {
     const r=await fetch(path,{cache:'no-cache'});
     if(!r.ok) throw new Error('Tidak dapat memuat '+path+' ('+r.status+')');
+    if(path.endsWith('accidents-coordinates.json')) {
+      const manifest=await r.json();
+      const parts=await Promise.all(manifest.parts.map(async part=>{
+        const response=await fetch(part,{cache:'no-cache'});
+        if(!response.ok) throw new Error('Bagian data kecelakaan tidak ditemukan: '+part);
+        return (await response.text()).trim();
+      }));
+      if(!window.DecompressionStream) throw new Error('Browser perlu mendukung DecompressionStream. Gunakan Chrome, Edge, Firefox, atau Safari terbaru.');
+      const binary=atob(parts.join('')), bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+      const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      const coords=JSON.parse(await new Response(stream).text());
+      return {type:'FeatureCollection',features:coords.map((xy,i)=>({
+        type:'Feature',geometry:{type:'Point',coordinates:xy},
+        properties:{event_label:'Kejadian kecelakaan historis 2025',record_number:i+1}
+      }))};
+    }
     if(path.endsWith('.gz.b64')) {
-      if(!window.DecompressionStream) throw new Error('Browser perlu mendukung DecompressionStream. Gunakan Chrome/Edge/Firefox/Safari terbaru.');
+      if(!window.DecompressionStream) throw new Error('Browser perlu mendukung DecompressionStream. Gunakan Chrome, Edge, Firefox, atau Safari terbaru.');
       const b64=(await r.text()).trim(), bin=atob(b64), bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));
       const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
       return JSON.parse(await new Response(stream).text());
