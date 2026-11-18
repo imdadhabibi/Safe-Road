@@ -96,7 +96,7 @@ Script lama menggunakan DBSCAN radius 150 m untuk membuat 8 klaster Blackspot da
 | ID | Masalah | Tindakan |
 |---|---|---|
 | B-01 | CRS CUSSUM Q/N/O belum dikonfirmasi | Minta file GIS/metadata atau konfirmasi sumber data |
-| B-02 | Geometri garis 23 Blacklink belum lengkap | Telusuri centerline dari sumber GIS dan validasi |
+| B-02 | Geometri garis Blacklink belum lengkap | GeoPackage baru menyediakan 10 dari 23 ruas; geometri 13 ruas lainnya masih perlu dicari dan divalidasi |
 | B-03 | Bounding box lama menolak 8 titik kecelakaan Cilacap | Gunakan poligon batas administrasi Cilacap |
 | B-04 | 183 label kecelakaan Berat, tetapi jumlah luka berat 0 | Klarifikasi definisi kolom |
 | B-05 | Data berhenti 26 Desember 2025 | Konfirmasi kelengkapan 27–31 Desember |
@@ -128,6 +128,28 @@ Script lama menggunakan DBSCAN radius 150 m untuk membuat 8 klaster Blackspot da
 
 **Batasan:** jangan mengarang koordinat/geometri; jangan menaruh workbook mentah di repository publik; jangan mengaktifkan peringatan GPS sebelum CRS, geometri, dan batas administrasi tervalidasi.
 
-## 10. Kesimpulan
+## 10. Pembaruan setelah GeoPackage Blacklink diterima
+
+Pada 18 November 2026, pemilik proyek memberikan `10 Jalan Terbaik.gpkg`. File dibaca sebagai GeoPackage dengan layer `jalan_ln_25k`.
+
+| Pemeriksaan | Hasil |
+|---|---:|
+| Fitur sumber | 64 |
+| Jenis geometri | MultiLineString |
+| Nama ruas unik | 10 |
+| CRS sumber | EPSG:32749 |
+| Geometri sumber valid | 64/64 |
+| Geometri yang ditampilkan | 64 fitur pada 10 ruas |
+| Cakupan daftar Blacklink EAN & UCL | 10 dari 23 ruas |
+
+Geometri dikonversi dari EPSG:32749 ke EPSG:4326/WGS84, disederhanakan secara ringan, dan disimpan sebagai GeoJSON terkompresi pada `data/blacklink-geometry-10-roads.geojson.gz.b64`. Leaflet memuatnya sebagai layer ungu yang dapat diaktifkan/nonaktifkan. Popup menampilkan nama jalan, ID fitur, dan CRS sumber.
+
+Sepuluh nama ruas tersebut semuanya cocok dengan nama yang berstatus Blacklink pada sheet EAN & UCL. Tiga belas ruas lainnya tetap tersedia pada tabel analisis tetapi tidak diberi garis perkiraan.
+
+Rincian sumber, daftar ruas, dan batasan validasi tersedia pada `docs/GIS-BLACKLINK-GEOPACKAGE.md`.
+
+**Batasan tetap berlaku:** kesesuaian geometri dengan ruas di lapangan dan batas administrasi perlu diperiksa secara visual/QGIS. Geometri Blacklink belum digunakan sebagai pemicu peringatan GPS. Jangan menyimpulkan GeoPackage memuat seluruh 23 ruas.
+
+## 11. Kesimpulan
 
 Milestone 0: **PASS WITH ISSUES**. Audit selesai, tetapi B-01 sampai B-06 harus diselesaikan atau diberi status batasan yang disetujui sebelum peta dan analisis dipublikasikan. Tahap berikutnya adalah Milestone 1 — data processing & GIS validation.
