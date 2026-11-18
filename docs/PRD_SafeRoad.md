@@ -80,7 +80,7 @@ Jangan mengganti data sumber tersebut dengan hasil algoritma alternatif. Jangan 
 
 Kolom Q pada CUSSUM berisi pasangan X,Y proyeksi dalam meter. CRS belum dinyatakan secara eksplisit. Simpan X/Y mentah; konfirmasi CRS sebelum mengubahnya ke WGS84 atau memakai hasilnya untuk peta publik/geofence.
 
-Tiga belas dari 23 ruas Blacklink belum memiliki geometri ruas yang dapat dipastikan dari workbook. Telusuri geometri melalui sumber peta/GIS yang dapat dipertanggungjawabkan dan lakukan validasi sebelum menampilkan garis operasional.
+GeoPackage `10 Jalan Terbaik.gpkg` yang diberikan pemilik proyek menambahkan 64 fitur MultiLineString pada 10 nama ruas Blacklink. CRS sumbernya EPSG:32749 dan telah dikonversi ke EPSG:4326 untuk layer peta. Tiga belas dari 23 ruas belum memiliki geometri pada file tersebut. Sepuluh ruas yang sudah tersedia dapat ditampilkan secara visual, tetapi tetap harus diperiksa kesesuaian lokasi/ruasnya sebelum digunakan untuk peringatan GPS atau keputusan operasional.
 
 ## 5. Privasi dan keamanan data
 
@@ -133,7 +133,7 @@ GitHub Pages tidak menjadi backend dan tidak menyimpan laporan pengguna secara a
 ## 9. Keputusan yang masih terbuka
 
 - Konfirmasi CRS CUSSUM dan arti lokasi koordinat relatif terhadap STA.
-- Validasi geometri 23 Blacklink.
+- Geometri 10/23 ruas Blacklink tersedia dari GeoPackage; cari dan validasi geometri 13 ruas sisanya.
 - Sumber poligon batas administrasi Kabupaten Cilacap.
 - Klarifikasi kolom kategori kecelakaan Berat versus jumlah luka berat = 0.
 - Konfirmasi apakah data 27–31 Desember 2025 tidak tersedia.
