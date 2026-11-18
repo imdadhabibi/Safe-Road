@@ -89,6 +89,9 @@
     });
     lineLayer.eachLayer(layer=>state.blacklinkLayer.addLayer(layer));
     if($('toggle-blacklink').checked)state.blacklinkLayer.addTo(state.map);
+    const bounds=lineLayer.getBounds();
+    if(bounds.isValid())state.map.fitBounds(bounds.pad(0.07),{maxZoom:12});
+    state.accidentLayer.eachLayer(layer=>{if(layer.bringToFront)layer.bringToFront();});
     $('blacklink-layer-count').textContent=fmt((data.features||[]).length)+' segmen pada 10 ruas dari GeoPackage';
     $('map-status').textContent='Data peta: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan, '+fmt((data.features||[]).length)+' segmen geometri Blacklink dari 10 ruas. 13 ruas Blacklink lainnya masih tersedia pada tabel, tetapi geometri belum tersedia dari file ini.';
   }
