@@ -33,7 +33,7 @@ Safe-Road/
 
 - 1.081 titik kecelakaan historis berasal dari sheet `Fix`. Arsip peta berisi pasangan koordinat publik saja; tidak menyertakan nomor laporan polisi, NRP, nama petugas, nomor kendaraan, atau narasi pribadi.
 - 122 segmen Jalan Blackspot berasal dari sheet `CUSSUM`; ditampilkan pada tabel analisis. Titik/garis belum digambar pada peta karena CRS dan makna kolom Q terhadap STA masih perlu konfirmasi.
-- 23 ruas Jalan Blacklink berasal dari sheet `EAN & UCL`; ditampilkan pada tabel analisis. Geometri garis belum dipublikasikan karena 13 ruas belum memiliki geometri yang tervalidasi.
+- 23 ruas Jalan Blacklink berasal dari sheet `EAN & UCL`; ditampilkan pada tabel analisis. Geometri dari GeoPackage tersedia sebagai 64 segmen pada 10 ruas dan ditampilkan sebagai layer ungu. Tiga belas ruas lainnya tetap ada di tabel tanpa garis perkiraan.
 - Titik kecelakaan historis bukan otomatis Blackspot atau Blacklink.
 
 ## Menjalankan secara lokal di Windows
@@ -47,7 +47,7 @@ Jangan membuka HTML menggunakan skema `file://`, karena browser dapat memblokir 
 
 ## Fungsi yang dapat diuji
 
-- Peta Leaflet + OpenStreetMap, 1.081 titik historis, dan tombol GPS.
+- Peta Leaflet + OpenStreetMap, 1.081 titik historis, 64 segmen garis Blacklink pada 10 ruas (layer ungu), dan tombol GPS.
 - Tabel 122 Blackspot dan 23 Blacklink.
 - Form laporan foto, deskripsi, nama ruas, GPS atau pin manual, dan persetujuan.
 - Laporan disimpan menggunakan IndexedDB pada browser/perangkat yang sama.
