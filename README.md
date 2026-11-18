@@ -63,7 +63,7 @@ Jangan membuka HTML menggunakan skema `file://`, karena browser dapat memblokir 
 - GPS memerlukan izin browser dan HTTPS atau localhost.
 - Peta dasar memerlukan internet untuk Leaflet CDN dan tile OpenStreetMap.
 - Radius peringatan GPS masih merupakan pratinjau; Blackspot/Blacklink belum digunakan sebagai pemicu peringatan.
-- Koordinat proyeksi CUSSUM dan centerline Blacklink belum tervalidasi sehingga layer tersebut hanya tersedia di tabel analisis.
+- Geometri Blacklink dari GeoPackage sudah tersedia untuk 10 dari 23 ruas (64 fitur garis), dikonversi EPSG:32749 ke WGS84 dan ditampilkan sebagai layer ungu. Tiga belas ruas lain tetap ada di tabel tanpa garis. Geometri Blackspot dari kolom Q CUSSUM masih menunggu konfirmasi CRS.
 
 ## Privasi
 
@@ -74,3 +74,4 @@ Workbook Excel mentah tidak disertakan dalam repository. Jangan mengunggah file 
 - [PRD SafeRoad](docs/PRD_SafeRoad.md)
 - [Laporan Audit dan QC Milestone 0](docs/qc/PHASE-0-AUDIT-REPORT.md)
 - [Panduan GitHub Pages](GITHUB-PAGES.md)
+- [Validasi dan integrasi GeoPackage Blacklink](docs/GIS-BLACKLINK-GEOPACKAGE.md)
