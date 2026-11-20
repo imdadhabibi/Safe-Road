@@ -86,6 +86,15 @@
     return (data || []).map(r => fromRow(r, true));
   }
 
+  async function getVerifiedReports() {
+    const { data, error } = await client().from('reports')
+      .select('id,road_name,description,latitude,longitude,created_at')
+      .eq('status', 'Terverifikasi')
+      .order('created_at', { ascending: false });
+    if (error) fail(error, 'Gagal memuat titik laporan terverifikasi.');
+    return (data || []).map(r => fromRow(r, true));
+  }
+
   async function getReport(id) {
     if (!(await isAdmin())) throw new Error('Hanya admin yang dapat membuka detail laporan.');
     const { data, error } = await client().from('reports').select('*').eq('id', id).single();
@@ -133,5 +142,5 @@
     }
   }
 
-  window.SafeRoadStore = { addReport, getAllReports, getReport, getPhotoUrl, updateReport, clearReports, isAdmin };
+  window.SafeRoadStore = { addReport, getAllReports, getVerifiedReports, getReport, getPhotoUrl, updateReport, clearReports, isAdmin };
 })();
