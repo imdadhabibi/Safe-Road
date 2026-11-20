@@ -153,11 +153,22 @@
       $('map-status').textContent='Layer laporan online belum tersedia: '+err.message;
     }
   }
-  function renderMyReports(){
-    const box=$('my-reports');
-    let sent=[];
+  async function renderMyReports(){
+    const box=$('my-reports');let sent=[];
     try{sent=JSON.parse(localStorage.getItem('saferoad-report-tickets')||'[]')}catch(_){}
-    box.innerHTML=sent.length?sent.slice(0,5).map(r=>'<article class="report-item"><div><b>'+esc(r.roadName)+'</b><small>ID referensi: '+esc(r.id)+' · '+new Date(r.createdAt).toLocaleString('id-ID')+'</small></div><span class="status-pill status-pending">Terkirim</span></article>').join('')+'<p class="muted-text">Riwayat ini hanya menyimpan nomor referensi pada perangkat ini. Status lengkap dan data laporan hanya dapat diakses admin.</p>':'<p class="muted-text">Belum ada nomor referensi laporan pada perangkat ini. Setelah mengirim laporan, ID referensi akan tampil di sini.</p>';
+    let html='';
+    try{
+      const user=await SafeRoadStore.currentUser();
+      if(user){
+        const rows=await SafeRoadStore.getMyReports();
+        html+='<p class="muted-text">Login sebagai '+esc(user.email||'pengguna')+'. Riwayat akun tersimpan di database dan dapat dibuka dari perangkat lain.</p>';
+        html+=rows.length?rows.map(r=>'<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div>'+pill(r.status)+'</article>').join(''):'<p class="muted-text">Belum ada laporan pada akun ini.</p>';
+        html+='<p><a href="akun.html">Kelola akun ↗</a> · <button class="text-button" id="home-logout">Keluar</button></p>';
+      }else html+='<p class="muted-text">Anda belum login. Laporan tanpa akun dapat dilacak menggunakan kode rahasia yang diberikan setelah pengiriman.</p><p><a href="akun.html">Login / Daftar akun pelapor ↗</a></p>';
+    }catch(e){html+='<p class="muted-text">Riwayat akun belum dapat dimuat: '+esc(e.message)+'</p>'}
+    if(sent.length)html+='<h3>Referensi tersimpan pada perangkat ini</h3>'+sent.slice(0,5).map(r=>'<article class="report-item"><div><b>'+esc(r.roadName)+'</b><small>ID: '+esc(r.id)+'</small></div><span class="status-pill status-pending">Gunakan kode</span></article>').join('');
+    box.innerHTML=html;
+    const logout=$('home-logout');if(logout)logout.addEventListener('click',async()=>{await window.safeRoadSupabase.auth.signOut();await renderMyReports()});
   }
   function renderTable(){
     const bs=state.selected==='blackspot', data=bs?state.blackspots:state.blacklinks;
@@ -236,14 +247,14 @@
         reporterName:profile.name,reporterContact:profile.contact,roadName:$('road-name').value.trim(),
         description:$('report-description').value.trim(),latitude:lat,longitude:lon,
         photoBlob:file.slice(0,file.size,file.type),photoType:file.type};
-      await SafeRoadStore.addReport(report);
+      const result=await SafeRoadStore.addReport(report);
       let tickets=[];try{tickets=JSON.parse(localStorage.getItem('saferoad-report-tickets')||'[]')}catch(_){}
-      tickets.unshift({id:report.id,roadName:report.roadName,createdAt:now});
+      tickets.unshift({id:result.id,roadName:result.roadName,createdAt:result.createdAt,trackingToken:result.trackingToken});
       localStorage.setItem('saferoad-report-tickets',JSON.stringify(tickets.slice(0,10)));
       $('report-form').reset();
       $('photo-preview').classList.add('hidden');$('photo-preview').removeAttribute('src');
       $('coordinate-status').textContent='Koordinat belum diisi.';
-      $('report-message').textContent='Laporan berhasil dikirim ke database SafeRoad. Simpan ID '+report.id+'. Status awal: Menunggu Verifikasi.';
+      $('report-message').innerHTML='Laporan berhasil dikirim. Kode pelacakan rahasia Anda:<br><b>'+esc(result.trackingToken)+'</b><br>Simpan kode ini untuk memeriksa status laporan dari perangkat lain. ID: '+esc(result.id)+'. Status: Menunggu Verifikasi.';
       $('report-message').className='form-message success';
       renderMyReports();
     }catch(err){
