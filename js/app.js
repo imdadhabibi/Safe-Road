@@ -71,7 +71,7 @@
     $('stat-accidents').textContent=fmt(fs.length);
     // Total fatalities is from the source workbook Fix (1,081 events; 195 fatalities). Coordinate archive is intentionally public-coordinate-only.
     $('stat-fatalities').textContent='195';
-    $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Blackspot/Blacklink tersedia pada tabel analisis; geometri peta menunggu validasi GIS.';
+    $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Memuat titik Blackspot dari file KML terbaru.';
     if(fs.length)state.map.fitBounds(state.accidentLayer.getBounds().pad(.06));
   }
   function renderBlackspotKml(data) {
@@ -87,7 +87,7 @@
           road_name:data.roads[roadIndex]||'Nama ruas tidak tersedia',
           distance_m:distance>=0?distance:'',
           remark:data.remarks[remarkIndex]||'',
-          source_file:'STA 10 JALAN.kml'
+          source_file:'Blackspot Cilacap.kml'
         }
       };
     });
@@ -110,7 +110,7 @@
     layer.eachLayer(marker=>state.blackspotKmlLayer.addLayer(marker));
     if($('toggle-blackspot').checked)state.blackspotKmlLayer.addTo(state.map);
     else state.map.removeLayer(state.blackspotKmlLayer);
-    $('blackspot-layer-count').textContent=fmt(features.length)+' titik STA pada '+fmt(data.roads.length)+' ruas';
+    $('blackspot-layer-count').textContent=fmt(features.length)+' titik pada '+fmt(data.roads.length)+' ruas · KML terbaru';\n    $('stat-blackspot').textContent=fmt(features.length);
     $('map-status').textContent='Data peta dimuat: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan historis, '+fmt(features.length)+' titik Blackspot dari '+fmt(data.roads.length)+' ruas, serta geometri Blacklink yang tersedia.';
     const bounds=L.featureGroup([state.accidentLayer,state.blackspotKmlLayer]).getBounds();
     if(bounds.isValid())state.map.fitBounds(bounds.pad(0.06),{maxZoom:11});
@@ -299,7 +299,7 @@
       const [acc,bs,bl]=await Promise.all([getJSON(files.accidents),getJSON(files.blackspot),getJSON(files.blacklink)]);
       state.accidents=acc;state.blackspots=bs;state.blacklinks=bl;
       renderAccidents();renderTable();
-      $('stat-blackspot').textContent=fmt(bs.length);$('stat-blacklink').textContent=fmt(bl.length);
+      $('stat-blackspot').textContent='—';$('stat-blacklink').textContent=fmt(bl.length);
       $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik kecelakaan historis, '+fmt(bs.length)+' data Blackspot pada tabel, dan '+fmt(bl.length)+' ruas Blacklink. Sedang memuat titik Blackspot dari KML.';
       try {
         const blackspotKml=await getJSON(files.blackspotKml);
