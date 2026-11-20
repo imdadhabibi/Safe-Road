@@ -5,10 +5,10 @@
 
 create table if not exists public.reports (
   id text primary key,
-  reporter_name text,
-  reporter_contact text,
-  road_name text not null,
-  description text not null,
+  reporter_name text check (reporter_name is null or length(reporter_name) <= 80),
+  reporter_contact text check (reporter_contact is null or length(reporter_contact) <= 25),
+  road_name text not null check (length(trim(road_name)) between 1 and 120),
+  description text not null check (length(trim(description)) between 1 and 1200),
   latitude double precision not null check (latitude between -90 and 90),
   longitude double precision not null check (longitude between -180 and 180),
   photo_path text not null check (photo_path like 'incoming/%'),
@@ -33,7 +33,7 @@ grant insert (id, reporter_name, reporter_contact, road_name, description,
 on public.reports to anon;
 
 -- Public can read only minimum fields of already verified map points.
-grant select (id, road_name, description, latitude, longitude, created_at)
+grant select (id, road_name, latitude, longitude, created_at)
 on public.reports to anon;
 
 -- Authenticated users get rows/operations only when app_metadata.role = admin (RLS).
