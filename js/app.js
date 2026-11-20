@@ -8,7 +8,7 @@
     accidents:'data/accidents-coordinates.json',
     blackspot:'data/blackspot-segments.json.gz.b64',
     blacklink:'data/blacklink-roads.json.gz.b64',
-    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64',\n    kmlAccidents:'data/accidents-kml-2025.geojson.gz.b64'
+    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64',\n    kmlAccidents:['data/accidents-kml-2025-danzel.geojson.gz.b64','data/accidents-kml-2025-fikar.geojson.gz.b64','data/accidents-kml-2025-imdad.geojson.gz.b64','data/accidents-kml-2025-fais.geojson.gz.b64'],\n    kmlAccidents:'data/accidents-kml-2025.geojson.gz.b64'
   };
   async function getJSON(path) {
     const r=await fetch(path,{cache:'no-cache'});
@@ -82,6 +82,24 @@
       onEachFeature:(f,l)=>{
         const p=f.properties||{};
         l.bindPopup('<b>'+esc(p.road_name||'Lokasi kecelakaan')+'</b><br>'+esc(p.dataset||'Titik Laka 2025')+
+          '<br>Nomor titik: '+esc(p.record_number??'-')+'<br>Sumber file: '+esc(p.source_file||'-'));
+      }
+    });
+    layer.eachLayer(l=>state.kmlAccidentLayer.addLayer(l));
+    if($('toggle-kml-accidents').checked)state.kmlAccidentLayer.addTo(state.map);
+    const count=(state.kmlAccidents.features||[]).length;
+    $('kml-accident-layer-count').textContent=fmt(count)+' titik dari 4 file KML';
+    $('map-status').textContent='Peta memuat '+fmt((state.accidents?.features||[]).length)+' titik pada dataset sebelumnya dan '+fmt(count)+' titik tambahan dari 4 file KML. Lapisan dipisah agar sumber data tetap dapat dibedakan.';
+  }
+
+  function renderKmlAccidents() {
+    if(!state.map || !state.kmlAccidents)return;
+    state.kmlAccidentLayer.clearLayers();
+    const layer=L.geoJSON(state.kmlAccidents,{
+      pointToLayer:(_f,ll)=>L.circleMarker(ll,{radius:5,color:'#8b5cf6',weight:1.5,fillColor:'#a78bfa',fillOpacity:.88}),
+      onEachFeature:(f,l)=>{
+        const p=f.properties||{};
+        l.bindPopup('<b>'+esc(p.road_name||'Lokasi kecelakaan')+'</b><br>Titik laka Kabupaten Cilacap 2025'+
           '<br>Nomor titik: '+esc(p.record_number??'-')+'<br>Sumber file: '+esc(p.source_file||'-'));
       }
     });
@@ -208,7 +226,7 @@
   function setup(){
     $('mobile-menu').addEventListener('click',()=>{const open=$('main-nav').classList.toggle('open');$('mobile-menu').setAttribute('aria-expanded',String(open))});
     $('main-nav').querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>$('main-nav').classList.remove('open')));
-    $('toggle-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.accidentLayer.addTo(state.map):state.map.removeLayer(state.accidentLayer)});\n    $('toggle-kml-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.kmlAccidentLayer.addTo(state.map):state.map.removeLayer(state.kmlAccidentLayer)});
+    $('toggle-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.accidentLayer.addTo(state.map):state.map.removeLayer(state.accidentLayer)});\n    $('toggle-kml-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.kmlAccidentLayer.addTo(state.map):state.map.removeLayer(state.kmlAccidentLayer)});\n    $('toggle-kml-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.kmlAccidentLayer.addTo(state.map):state.map.removeLayer(state.kmlAccidentLayer)});
     $('toggle-blacklink').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.blacklinkLayer.addTo(state.map):state.map.removeLayer(state.blacklinkLayer)});
     $('toggle-potholes').addEventListener('change',e=>{if(!state.map)return;e.target.checked?renderVerifiedReports():state.map.removeLayer(state.potholeLayer)});
     $('toggle-user').addEventListener('change',e=>{if(e.target.checked)return;if(state.userMarker)state.map.removeLayer(state.userMarker);if(state.accuracy)state.map.removeLayer(state.accuracy);state.userMarker=state.accuracy=null});
