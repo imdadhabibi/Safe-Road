@@ -1,6 +1,6 @@
 # SafeRoad — Sistem Informasi Keselamatan Jalan Kabupaten Cilacap
 
-Proyek website SafeRoad mengikuti rancangan visual yang telah disetujui: header putih, hero dua kolom, kartu peta risiko, empat statistik, peta Leaflet, panel layer, tabel analisis, form pelaporan, dan halaman admin demo.
+Proyek website SafeRoad mengikuti rancangan visual yang telah disetujui: header putih, hero dua kolom, kartu peta risiko, empat statistik, peta Leaflet, panel layer, tabel analisis, form pelaporan, dan halaman admin.
 
 ## Struktur repository
 
