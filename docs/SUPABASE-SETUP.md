@@ -23,7 +23,8 @@ window.SafeRoadSupabaseConfig = {
 
 1. Buka **SQL Editor → New query** di Supabase.
 2. Salin seluruh isi `supabase/setup.sql` ke SQL Editor dan jalankan.
-3. Pastikan tabel `public.reports` dan bucket privat `report-photos` sudah dibuat.\n4. Gunakan proyek baru/kosong atau periksa serta hapus kebijakan/grant lama yang lebih longgar pada tabel dan `storage.objects`; kebijakan permissive lain dapat memberi akses tambahan.
+3. Pastikan tabel `public.reports` dan bucket privat `report-photos` sudah dibuat.
+4. Gunakan proyek baru/kosong atau periksa serta hapus kebijakan/grant lama yang lebih longgar pada tabel dan `storage.objects`; kebijakan permissive lain dapat memberi akses tambahan.
 
 Hak akses:
 - Publik dapat mengirim laporan baru. Status awal ditetapkan database.
@@ -56,7 +57,14 @@ Hak admin dibaca dari `app_metadata`, bukan `user_metadata`, sehingga pengguna t
 4. Laporan dari semua perangkat akan muncul pada antrean admin.
 5. Ubah status menjadi **Terverifikasi** untuk menampilkan titiknya pada layer jalan berlubang publik.
 
-## 5. Uji akses sebelum publikasi\n\n- Dari sesi tanpa login, coba baca daftar laporan: hanya titik yang berstatus `Terverifikasi` dan kolom publik minimum yang boleh kembali.\n- Dari sesi tanpa login, coba ubah status, baca identitas pelapor, atau unduh foto: semuanya harus ditolak.\n- Dari akun admin, pastikan antrean semua status, foto, dan perubahan status dapat diakses.\n- Coba dari dua perangkat berbeda untuk memastikan laporan uji masuk ke antrean yang sama.\n\n## 6. Keamanan
+## 5. Uji akses sebelum publikasi
+
+- Dari sesi tanpa login, coba baca daftar laporan: hanya titik yang berstatus `Terverifikasi` dan kolom publik minimum yang boleh kembali.
+- Dari sesi tanpa login, coba ubah status, baca identitas pelapor, atau unduh foto: semuanya harus ditolak.
+- Dari akun admin, pastikan antrean semua status, foto, dan perubahan status dapat diakses.
+- Coba dari dua perangkat berbeda untuk memastikan laporan uji masuk ke antrean yang sama.
+
+## 6. Keamanan
 
 - URL proyek dan Publishable/anon key memang digunakan di browser. Jangan gunakan Secret/service_role key.
 - Jangan mengubah bucket foto menjadi public.
