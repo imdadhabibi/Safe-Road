@@ -8,7 +8,13 @@
     accidents:'data/accidents-coordinates.json',
     blackspot:'data/blackspot-segments.json.gz.b64',
     blacklink:'data/blacklink-roads.json.gz.b64',
-    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64',\n    kmlAccidents:['data/accidents-kml-2025-danzel.geojson.gz.b64','data/accidents-kml-2025-fikar.geojson.gz.b64','data/accidents-kml-2025-imdad.geojson.gz.b64','data/accidents-kml-2025-fais.geojson.gz.b64'],\n    kmlAccidents:'data/accidents-kml-2025.geojson.gz.b64'
+    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64',
+    kmlAccidents:[
+      'data/accidents-kml-2025-danzel.geojson.gz.b64',
+      'data/accidents-kml-2025-fikar.geojson.gz.b64',
+      'data/accidents-kml-2025-imdad.geojson.gz.b64',
+      'data/accidents-kml-2025-fais.geojson.gz.b64'
+    ]
   };
   async function getJSON(path) {
     const r=await fetch(path,{cache:'no-cache'});
@@ -72,24 +78,6 @@
     $('stat-fatalities').textContent='195';
     $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Blackspot/Blacklink tersedia pada tabel analisis; geometri peta menunggu validasi GIS.';
     if(fs.length)state.map.fitBounds(state.accidentLayer.getBounds().pad(.06));
-  }
-
-  function renderKmlAccidents() {
-    if(!state.map || !state.kmlAccidents)return;
-    state.kmlAccidentLayer.clearLayers();
-    const layer=L.geoJSON(state.kmlAccidents,{
-      pointToLayer:(_f,ll)=>L.circleMarker(ll,{radius:5,color:'#8b5cf6',weight:1.5,fillColor:'#a78bfa',fillOpacity:.88}),
-      onEachFeature:(f,l)=>{
-        const p=f.properties||{};
-        l.bindPopup('<b>'+esc(p.road_name||'Lokasi kecelakaan')+'</b><br>'+esc(p.dataset||'Titik Laka 2025')+
-          '<br>Nomor titik: '+esc(p.record_number??'-')+'<br>Sumber file: '+esc(p.source_file||'-'));
-      }
-    });
-    layer.eachLayer(l=>state.kmlAccidentLayer.addLayer(l));
-    if($('toggle-kml-accidents').checked)state.kmlAccidentLayer.addTo(state.map);
-    const count=(state.kmlAccidents.features||[]).length;
-    $('kml-accident-layer-count').textContent=fmt(count)+' titik dari 4 file KML';
-    $('map-status').textContent='Peta memuat '+fmt((state.accidents?.features||[]).length)+' titik pada dataset sebelumnya dan '+fmt(count)+' titik tambahan dari 4 file KML. Lapisan dipisah agar sumber data tetap dapat dibedakan.';
   }
 
   function renderKmlAccidents() {
@@ -245,15 +233,23 @@
     if(state.profile)$('profile-box').innerHTML='<b>Profil demo:</b> '+esc(state.profile.name)+'<br><small>Hanya tersimpan di browser ini.</small>';
     initMap();
     try{
-      const [acc,bs,bl]=await Promise.all([getJSON(files.accidents),getJSON(files.blackspot),getJSON(files.blacklink)]);
-      state.accidents=acc;state.blackspots=bs;state.blacklinks=bl;
-      renderAccidents();renderTable();
+      const [acc,bs,bl,kmlParts]=await Promise.all([
+        getJSON(files.accidents),
+        getJSON(files.blackspot),
+        getJSON(files.blacklink),
+        Promise.all(files.kmlAccidents.map(path=>getJSON(path)))
+      ]);
+      const kmlFeatures=kmlParts.flatMap(part=>part.features||[]);
+      state.accidents=acc;
+      state.kmlAccidents={type:'FeatureCollection',features:kmlFeatures};
+      state.blackspots=bs;state.blacklinks=bl;
+      renderAccidents();renderKmlAccidents();renderTable();
       $('stat-blackspot').textContent=fmt(bs.length);$('stat-blacklink').textContent=fmt(bl.length);
-      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik dataset sebelumnya, '+fmt(kml.features.length)+' titik KML 2025, '+fmt(bs.length)+' Blackspot dan '+fmt(bl.length)+' Blacklink. Sedang memuat geometri 10 ruas Blacklink dari GeoPackage.';
+      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik pada dataset sebelumnya, '+fmt(kmlFeatures.length)+' titik KML 2025, '+fmt(bs.length)+' Blackspot dan '+fmt(bl.length)+' Blacklink. Sedang memuat geometri 10 ruas Blacklink dari GeoPackage.';
       try { const geometry=await getJSON(files.blacklinkGeometry); renderBlacklinkGeometry(geometry); }
-      catch(geometryError) { $('blacklink-layer-count').textContent='Geometri belum dapat dimuat'; $('map-status').textContent='Data tabel dan titik kecelakaan tersedia. Geometri Blacklink gagal dimuat: '+geometryError.message; }
+      catch(geometryError) { $('blacklink-layer-count').textContent='Geometri belum dapat dimuat'; $('map-status').textContent='Data titik kecelakaan dan tabel tersedia. Geometri Blacklink gagal dimuat: '+geometryError.message; }
     }catch(err){$('map-status').textContent=err.message+' Jalankan melalui HTTPS/localhost dan pastikan folder data tersedia.';$('analysis-body').innerHTML='<tr><td>Data belum dapat dimuat: '+esc(err.message)+'</td></tr>'}
     await renderMyReports();await renderVerifiedReports();
   }
-  document.addEventListener('DOMContentLoaded',boot);
+    document.addEventListener('DOMContentLoaded',boot);
 })();
