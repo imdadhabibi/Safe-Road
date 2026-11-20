@@ -1,6 +1,6 @@
 # SafeRoad — Sistem Informasi Keselamatan Jalan Kabupaten Cilacap
 
-Proyek website SafeRoad mengikuti rancangan visual yang telah disetujui: header putih, hero dua kolom, kartu peta risiko, empat statistik, peta Leaflet, panel layer, tabel analisis, form pelaporan, dan halaman admin demo.
+Proyek website SafeRoad mengikuti rancangan visual yang telah disetujui: header putih, hero dua kolom, kartu peta risiko, empat statistik, peta Leaflet, panel layer, tabel analisis, form pelaporan, dan halaman admin.
 
 ## Struktur repository
 
@@ -8,18 +8,25 @@ Proyek website SafeRoad mengikuti rancangan visual yang telah disetujui: header 
 Safe-Road/
 ├── index.html
 ├── admin.html
+├── login.html
 ├── styles.css
 ├── js/
 │   ├── app.js
 │   ├── admin.js
-│   └── store.js
+│   ├── store.js
+│   ├── supabase-config.js
+│   ├── supabase-client.js
+│   └── admin-gate.js
 ├── data/
 │   ├── accidents-coordinates.json
 │   ├── accidents-coordinates.part-01.b64 ... part-06.b64
 │   ├── blackspot-segments.json.gz.b64
 │   ├── blacklink-roads.json.gz.b64
 │   └── public-data-qa.json.gz.b64
+├── supabase/
+│   └── setup.sql
 ├── docs/
+│   └── SUPABASE-SETUP.md
 │   ├── PRD_SafeRoad.md
 │   └── qc/PHASE-0-AUDIT-REPORT.md
 ├── scripts/
@@ -50,16 +57,16 @@ Jangan membuka HTML menggunakan skema `file://`, karena browser dapat memblokir 
 - Peta Leaflet + OpenStreetMap, 1.081 titik historis, 64 segmen garis Blacklink pada 10 ruas (layer ungu), dan tombol GPS.
 - Tabel 122 Blackspot dan 23 Blacklink.
 - Form laporan foto, deskripsi, nama ruas, GPS atau pin manual, dan persetujuan.
-- Laporan disimpan menggunakan IndexedDB pada browser/perangkat yang sama.
-- Admin demo dapat membaca antrean, memeriksa foto/koordinat, mengubah status, dan menyimpan riwayat status pada browser yang sama.
+- Form laporan mengirim data dan foto ke Supabase; antrean laporan menjadi satu untuk semua perangkat.
+- Admin masuk menggunakan Supabase Auth, lalu dapat membaca antrean, memeriksa foto/koordinat, mengubah status, dan menyimpan riwayat status pada database online.
 
 ## Batasan penting
 
-**Ini prototipe demo, belum menjadi sistem multi-pengguna produksi.**
+**Versi ini menggunakan Supabase sebagai backend, tetapi wajib menyelesaikan konfigurasi proyek Supabase sebelum form dan dashboard dipakai.**
 
-- IndexedDB menyimpan data secara lokal di perangkat/browser. Laporan dari HP tidak otomatis terlihat di laptop atau petugas lain.
-- `admin.html` adalah dashboard DEMO tanpa autentikasi dan otorisasi server. Siapa pun yang membuka halaman tersebut dapat mengakses layar demo; jangan digunakan untuk operasi petugas sesungguhnya.
-- Sebelum aplikasi digunakan publik untuk menerima laporan nyata, wajib integrasikan Supabase Auth, PostgreSQL + Row Level Security, Storage policies, dan server-side admin roles.
+- Isi URL proyek dan Publishable Key pada `js/supabase-config.js`, lalu jalankan `supabase/setup.sql` di SQL Editor.
+- `admin.html` dilindungi Supabase Auth dan PostgreSQL Row Level Security. Admin harus dibuat di Supabase Auth lalu diberi `app_metadata.role = admin` sesuai `docs/SUPABASE-SETUP.md`.
+- Public hanya dapat mengirim laporan dan melihat titik bahaya yang sudah terverifikasi (kolom publik minimum). Hanya admin yang dapat melihat antrean, identitas pelapor, foto privat, catatan verifikasi, mengubah status, dan menghapus laporan.
 - GPS memerlukan izin browser dan HTTPS atau localhost.
 - Peta dasar memerlukan internet untuk Leaflet CDN dan tile OpenStreetMap.
 - Radius peringatan GPS masih merupakan pratinjau; Blackspot/Blacklink belum digunakan sebagai pemicu peringatan.
@@ -68,6 +75,10 @@ Jangan membuka HTML menggunakan skema `file://`, karena browser dapat memblokir 
 ## Privasi
 
 Workbook Excel mentah tidak disertakan dalam repository. Jangan mengunggah file Excel asli, kredensial, `.env`, identitas petugas, NRP, nomor laporan polisi, nomor kendaraan, atau narasi pribadi. `.gitignore` melindungi beberapa pola file saat menggunakan Git, tetapi upload manual melalui GitHub tetap perlu diperiksa.
+
+## Setup backend Supabase
+
+Ikuti [panduan setup Supabase](docs/SUPABASE-SETUP.md). Salin `js/supabase-config.js` dan isi Project URL serta Publishable Key. Jangan pernah menaruh `service_role` atau Secret key pada kode browser.
 
 ## Dokumentasi
 
