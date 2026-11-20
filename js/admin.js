@@ -3,10 +3,12 @@
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const statuses=['Menunggu Verifikasi','Terverifikasi','Perlu Pemeriksaan Lebih Lanjut','Ditolak','Sudah Ditangani'];
-  let reports=[],selected=null,photoUrl=null;
+  let reports=[],selected=null,photoUrl=null,refreshing=false;
   const cls=s=>s==='Terverifikasi'?'status-verified':s==='Ditolak'?'status-rejected':s==='Sudah Ditangani'?'status-done':'status-pending';
   const pill=s=>'<span class="status-pill '+cls(s)+'">'+esc(s)+'</span>';
   async function refresh(){
+    if(refreshing)return;
+    refreshing=true;
     try{
       reports=await SafeRoadStore.getAllReports();
       $('total-count').textContent=reports.length;
@@ -15,8 +17,9 @@
       $('done-count').textContent=reports.filter(r=>r.status==='Sudah Ditangani').length;
       renderList();
       if(selected&&reports.some(r=>r.id===selected))await detail(selected);
-      else if(!reports.length)$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Belum ada laporan pada browser ini.</p>';
+      else if(!reports.length)$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Belum ada laporan masuk.</p>';
     }catch(e){$('report-list').textContent='Gagal memuat laporan dari Supabase: '+e.message}
+    finally{refreshing=false}
   }
   function renderList(){
     const status=$('status-filter').value,q=$('search-report').value.trim().toLowerCase();
@@ -64,4 +67,6 @@
     try{await SafeRoadStore.clearReports();selected=null;await refresh();$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Seluruh laporan dihapus dari database.</p>'}catch(e){alert(e.message)}
   });
   refresh();
+  // Poll shared cloud queue so reports from other devices appear without manual reload.
+  setInterval(()=>{ if(document.visibilityState==='visible') refresh(); },20000);
 })();
