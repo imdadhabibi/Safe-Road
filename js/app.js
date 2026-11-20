@@ -146,7 +146,7 @@
       const rows=await SafeRoadStore.getVerifiedReports();
       rows.filter(r=>Number.isFinite(r.latitude) && Number.isFinite(r.longitude)).forEach(r=>{
         L.circleMarker([r.latitude,r.longitude],{radius:8,color:'#b77912',weight:2,fillColor:'#e8ad20',fillOpacity:.9})
-         .bindPopup('<b>Jalan berlubang terverifikasi</b><br>'+esc(r.roadName)+'<br>'+esc(r.description)).addTo(state.potholeLayer);
+         .bindPopup('<b>Jalan berlubang terverifikasi</b><br>'+esc(r.roadName)).addTo(state.potholeLayer);
       });
       if($('toggle-potholes').checked)state.potholeLayer.addTo(state.map);
     }catch(err){
