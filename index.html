@@ -64,20 +64,20 @@
 
   <section class="container section" id="peta">
     <div class="section-heading">
-      <div><span class="section-kicker">PETA INTERAKTIF</span><h2>Pantau risiko di sekitar Anda</h2><p>Titik kecelakaan historis berasal dari koordinat pada file sumber. Geometri Jalan Blacklink ditampilkan untuk 10 ruas yang tersedia pada GeoPackage; 13 ruas lainnya tetap tersedia dalam tabel dan menunggu geometri. Geometri Blackspot masih menunggu validasi CRS.</p></div>
+      <div><span class="section-kicker">PETA INTERAKTIF</span><h2>Pantau risiko di sekitar Anda</h2><p>Titik kecelakaan historis ditampilkan terpisah dari 435 titik Blackspot/STA pada file STA 10 JALAN.kml untuk 10 ruas. Garis Jalan Blacklink ditampilkan untuk 10 ruas yang memiliki geometri pada GeoPackage; 13 ruas lainnya tetap tersedia pada tabel dan menunggu geometri.</p></div>
       <button class="button button-outline" id="get-location">◎ Aktifkan GPS</button>
     </div>
     <div class="map-layout">
       <div class="surface map-surface">
         <div id="map" aria-label="Peta interaktif Kabupaten Cilacap"></div>
-        <div class="map-caption">ⓘ Titik merah menunjukkan kejadian kecelakaan historis, bukan otomatis Blackspot. Garis ungu menunjukkan geometri 10 ruas Blacklink dari GeoPackage EPSG:32749 yang telah dikonversi ke WGS84. Tiga belas ruas lainnya belum memiliki geometri pada file ini. Blackspot belum digambar karena CRS kolom Q CUSSUM belum dikonfirmasi.</div>
+        <div class="map-caption">ⓘ Titik merah menunjukkan kejadian kecelakaan historis. Titik oranye menunjukkan 435 titik Blackspot/STA dari file STA 10 JALAN.kml pada 10 ruas dan dapat dinyalakan atau disembunyikan melalui panel Lapisan peta. Garis ungu menunjukkan geometri 10 ruas Blacklink dari GeoPackage.</div>
         <div class="inline-status" id="map-status" role="status">Menyiapkan peta dan memuat data…</div>
       </div>
       <aside class="map-sidebar">
         <div class="surface layer-panel">
           <h3>Lapisan peta</h3>
           <label class="layer-row"><span class="layer-swatch swatch-red"></span><span class="layer-copy"><b>Riwayat kecelakaan</b><small id="accident-layer-count">Titik GPS dari sheet Fix</small></span><input type="checkbox" id="toggle-accidents" checked></label>
-          <label class="layer-row"><span class="layer-swatch swatch-orange"></span><span class="layer-copy"><b>Jalan Blackspot</b><small>122 segmen · menunggu validasi CRS</small></span><input type="checkbox" disabled aria-label="Blackspot menunggu validasi"></label>
+          <label class="layer-row"><span class="layer-swatch swatch-orange"></span><span class="layer-copy"><b>Blackspot / STA 10 Jalan</b><small id="blackspot-layer-count">Memuat 435 titik STA pada 10 ruas</small></span><input type="checkbox" id="toggle-blackspot" checked aria-label="Tampilkan titik Blackspot dan STA"></label>
           <label class="layer-row"><span class="layer-swatch swatch-purple"></span><span class="layer-copy"><b>Jalan Blacklink</b><small id="blacklink-layer-count">Memuat 64 segmen pada 10 ruas</small></span><input type="checkbox" id="toggle-blacklink" checked aria-label="Tampilkan geometri Jalan Blacklink"></label>
           <label class="layer-row"><span class="layer-swatch swatch-yellow"></span><span class="layer-copy"><b>Jalan berlubang</b><small>Laporan terverifikasi (browser ini)</small></span><input type="checkbox" id="toggle-potholes" checked></label>
           <label class="layer-row"><span class="layer-swatch swatch-blue"></span><span class="layer-copy"><b>Posisi saya</b><small>Lokasi perangkat</small></span><input type="checkbox" id="toggle-user" checked></label>
