@@ -14,7 +14,7 @@
 <body>
 <header class="site-header"><div class="container header-inner">
 <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">⛨</span><span><strong>SafeRoad</strong><small>Dashboard admin · Mode demo lokal</small></span></a>
-<a class="button button-outline" href="index.html#laporan-saya">← Kembali ke website</a>
+<div style="display:flex;gap:8px;align-items:center"><button id="admin-logout" class="button button-outline" type="button">Keluar</button><a class="button button-outline" href="index.html#laporan-saya">← Kembali ke website</a></div>
 </div></header>
 <main class="container admin-main">
 <div class="admin-title"><div><span class="section-kicker">AREA PETUGAS</span><h1>Dashboard verifikasi laporan</h1><p>Antrean laporan jalan berlubang pada browser ini.</p></div><button id="refresh" class="button button-outline">↻ Muat ulang</button></div>
@@ -34,5 +34,5 @@
 <section class="surface admin-list"><h2 style="font-size:18px;margin:4px 4px 14px">Daftar laporan masuk</h2><div id="report-list"><div class="empty-state">Belum ada laporan.</div></div></section>
 <aside class="surface admin-detail" id="report-detail"><h2>Detail laporan</h2><p class="muted-text">Pilih satu laporan dari daftar untuk memeriksa foto, koordinat, dan keterangannya.</p></aside>
 </div></main>
-<script src="js/store.js"></script><script src="js/admin.js"></script>
+<script src="js/admin-gate.js"></script><script src="js/store.js"></script><script src="js/admin.js"></script>
 </body></html>
