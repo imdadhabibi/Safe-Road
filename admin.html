@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4f8fc">
-<title>Admin Demo — SafeRoad</title>
+<title>Dashboard Admin — SafeRoad</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -13,14 +13,14 @@
 </style></head>
 <body>
 <header class="site-header"><div class="container header-inner">
-<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">⛨</span><span><strong>SafeRoad</strong><small>Dashboard admin · Mode demo lokal</small></span></a>
+<a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">⛨</span><span><strong>SafeRoad</strong><small>Dashboard admin · Supabase</small></span></a>
 <div style="display:flex;gap:8px;align-items:center"><button id="admin-logout" class="button button-outline" type="button">Keluar</button><a class="button button-outline" href="index.html#laporan-saya">← Kembali ke website</a></div>
 </div></header>
 <main class="container admin-main">
-<div class="admin-title"><div><span class="section-kicker">AREA PETUGAS</span><h1>Dashboard verifikasi laporan</h1><p>Antrean laporan jalan berlubang pada browser ini.</p></div><button id="refresh" class="button button-outline">↻ Muat ulang</button></div>
-<div class="demo-banner"><b>MODE ADMIN DEMO LOKAL — BUKAN LOGIN PRODUKSI.</b> Halaman ini tidak memiliki autentikasi atau perlindungan server. Data hanya tersimpan pada browser/perangkat ini. Jangan gunakan untuk laporan masyarakat sesungguhnya atau publikasikan sebagai dashboard admin operasional sebelum Supabase Auth, Row Level Security, dan Storage policy diterapkan.</div>
+<div class="admin-title"><div><span class="section-kicker">AREA PETUGAS</span><h1>Dashboard verifikasi laporan</h1><p>Antrean laporan jalan berlubang dari seluruh perangkat.</p></div><button id="refresh" class="button button-outline">↻ Muat ulang</button></div>
+<div class="demo-banner"><b>DASHBOARD PETUGAS SAFE ROAD.</b> Antrean laporan disimpan pada database online. Hanya akun dengan role admin yang dapat melihat identitas pelapor, foto privat, memverifikasi, mengubah status, atau menghapus laporan.</div>
 <section class="admin-stats">
-<article class="admin-stat"><small>Total laporan lokal</small><b id="total-count">0</b></article>
+<article class="admin-stat"><small>Total laporan</small><b id="total-count">0</b></article>
 <article class="admin-stat"><small>Menunggu verifikasi</small><b id="pending-count">0</b></article>
 <article class="admin-stat"><small>Terverifikasi</small><b id="verified-count">0</b></article>
 <article class="admin-stat"><small>Sudah ditangani</small><b id="done-count">0</b></article>
@@ -28,11 +28,16 @@
 <div class="admin-controls">
 <div><label for="status-filter" class="muted-text">Filter status</label><br><select id="status-filter"><option value="Semua">Semua status</option><option>Menunggu Verifikasi</option><option>Terverifikasi</option><option>Perlu Pemeriksaan Lebih Lanjut</option><option>Ditolak</option><option>Sudah Ditangani</option></select></div>
 <div><label for="search-report" class="muted-text">Cari laporan</label><br><input id="search-report" type="search" placeholder="ID atau nama ruas…"></div>
-<button id="reset-demo" class="button button-outline">Hapus seluruh data demo</button>
+<button id="reset-demo" class="button button-outline">Hapus seluruh laporan</button>
 </div>
 <div class="admin-grid">
 <section class="surface admin-list"><h2 style="font-size:18px;margin:4px 4px 14px">Daftar laporan masuk</h2><div id="report-list"><div class="empty-state">Belum ada laporan.</div></div></section>
 <aside class="surface admin-detail" id="report-detail"><h2>Detail laporan</h2><p class="muted-text">Pilih satu laporan dari daftar untuk memeriksa foto, koordinat, dan keterangannya.</p></aside>
 </div></main>
-<script src="js/admin-gate.js"></script><script src="js/store.js"></script><script src="js/admin.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/store.js"></script>
+<script src="js/admin-gate.js"></script>
+<script src="js/admin.js"></script>
 </body></html>
