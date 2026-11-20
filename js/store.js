@@ -88,7 +88,7 @@
 
   async function getVerifiedReports() {
     const { data, error } = await client().from('reports')
-      .select('id,road_name,description,latitude,longitude,created_at')
+      .select('id,road_name,latitude,longitude,created_at')
       .eq('status', 'Terverifikasi')
       .order('created_at', { ascending: false });
     if (error) fail(error, 'Gagal memuat titik laporan terverifikasi.');
