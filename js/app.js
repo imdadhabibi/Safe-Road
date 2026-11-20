@@ -274,6 +274,15 @@
     $('toggle-user').addEventListener('change',e=>{if(e.target.checked)return;if(state.userMarker)state.map.removeLayer(state.userMarker);if(state.accuracy)state.map.removeLayer(state.accuracy);state.userMarker=state.accuracy=null});
     $('get-location').addEventListener('click',()=>gps('get-location'));$('report-gps').addEventListener('click',()=>gps('report-gps'));
     $('pick-map-location').addEventListener('click',()=>{state.picking=!state.picking;$('pick-map-location').textContent=state.picking?'Klik lokasi pada peta…':'Pilih titik pada peta';$('coordinate-status').textContent=state.picking?'Klik titik yang diinginkan pada peta.':'Pemilihan titik dibatalkan.';$('map').classList.toggle('map-picking',state.picking);if(state.picking)$('peta').scrollIntoView({behavior:'smooth'})});
+    $('tracking-form').addEventListener('submit',async e=>{
+      e.preventDefault();const box=$('tracking-result'),token=$('tracking-code').value.trim();
+      box.textContent='Mencari laporan…';
+      try{
+        const r=await SafeRoadStore.getTrackingReport(token);
+        const statusClass=r.status==='Terverifikasi'?'status-verified':r.status==='Ditolak'?'status-rejected':r.status==='Sudah Ditangani'?'status-done':'status-pending';
+        box.innerHTML='<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.report_id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div><span class="status-pill '+statusClass+'">'+esc(r.status)+'</span></article><small class="muted-text">Pembaruan terakhir: '+(r.updated_at?new Date(r.updated_at).toLocaleString('id-ID'):'Belum ada')+'</small>';
+      }catch(err){box.textContent=err.message}
+    });
     $('report-form').addEventListener('submit',reportSubmit);
     $('report-photo').addEventListener('change',()=>{const f=$('report-photo').files[0];if(!f)return;const old=$('photo-preview').dataset.url;if(old)URL.revokeObjectURL(old);const url=URL.createObjectURL(f);$('photo-preview').dataset.url=url;$('photo-preview').src=url;$('photo-preview').classList.remove('hidden')});
     document.querySelectorAll('.data-tab').forEach(b=>b.addEventListener('click',()=>{state.selected=b.dataset.kind;state.page=1;document.querySelectorAll('.data-tab').forEach(x=>x.classList.toggle('active',x===b));renderTable()}));
