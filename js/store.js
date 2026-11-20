@@ -80,7 +80,7 @@
       return (data || []).map(r => fromRow(r));
     }
     const { data, error } = await sb.from('reports')
-      .select('id,road_name,description,latitude,longitude,created_at')
+      .select('id,road_name,latitude,longitude,created_at')
       .order('created_at', { ascending: false });
     if (error) fail(error, 'Gagal memuat titik jalan berlubang terverifikasi.');
     return (data || []).map(r => fromRow(r, true));
