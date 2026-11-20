@@ -98,7 +98,7 @@
       onEachFeature:(feature,marker)=>{
         const p=feature.properties||{};
         marker.bindPopup(
-          '<b>'+esc(p.road_name)+'</b><br><b>Layer:</b> Blackspot / STA 10 Jalan'+
+          '<b>'+esc(p.road_name)+'</b><br><b>Layer:</b> Blackspot'+
           '<br><b>Nomor titik:</b> '+esc(p.fid)+
           '<br><b>Jarak STA:</b> '+(p.distance_m!==''?fmt(p.distance_m)+' m':'Tidak tercantum')+
           '<br><b>Keterangan ruas:</b> '+esc(p.remark||'-')+
@@ -111,7 +111,7 @@
     if($('toggle-blackspot').checked)state.blackspotKmlLayer.addTo(state.map);
     else state.map.removeLayer(state.blackspotKmlLayer);
     $('blackspot-layer-count').textContent=fmt(features.length)+' titik STA pada '+fmt(data.roads.length)+' ruas';
-    $('map-status').textContent='Data peta dimuat: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan historis, '+fmt(features.length)+' titik Blackspot/STA dari '+fmt(data.roads.length)+' ruas, serta geometri Blacklink yang tersedia.';
+    $('map-status').textContent='Data peta dimuat: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan historis, '+fmt(features.length)+' titik Blackspot dari '+fmt(data.roads.length)+' ruas, serta geometri Blacklink yang tersedia.';
     const bounds=L.featureGroup([state.accidentLayer,state.blackspotKmlLayer]).getBounds();
     if(bounds.isValid())state.map.fitBounds(bounds.pad(0.06),{maxZoom:11});
   }
@@ -257,7 +257,7 @@
       state.accidents=acc;state.blackspots=bs;state.blacklinks=bl;
       renderAccidents();renderTable();
       $('stat-blackspot').textContent=fmt(bs.length);$('stat-blacklink').textContent=fmt(bl.length);
-      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik kecelakaan historis, '+fmt(bs.length)+' data Blackspot pada tabel, dan '+fmt(bl.length)+' ruas Blacklink. Sedang memuat titik STA/Blackspot dari KML.';
+      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik kecelakaan historis, '+fmt(bs.length)+' data Blackspot pada tabel, dan '+fmt(bl.length)+' ruas Blacklink. Sedang memuat titik Blackspot dari KML.';
       try {
         const blackspotKml=await getJSON(files.blackspotKml);
         state.blackspotKml=blackspotKml;
