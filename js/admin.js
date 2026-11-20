@@ -16,7 +16,7 @@
       renderList();
       if(selected&&reports.some(r=>r.id===selected))await detail(selected);
       else if(!reports.length)$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Belum ada laporan pada browser ini.</p>';
-    }catch(e){$('report-list').textContent='Penyimpanan lokal tidak tersedia: '+e.message}
+    }catch(e){$('report-list').textContent='Gagal memuat laporan dari Supabase: '+e.message}
   }
   function renderList(){
     const status=$('status-filter').value,q=$('search-report').value.trim().toLowerCase();
@@ -26,7 +26,8 @@
   }
   async function detail(id){
     const r=reports.find(x=>x.id===id)||await SafeRoadStore.getReport(id);if(!r)return;selected=id;renderList();
-    if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=r.photoBlob?URL.createObjectURL(r.photoBlob):null;
+    if(photoUrl && photoUrl.startsWith('blob:'))URL.revokeObjectURL(photoUrl);
+    photoUrl=r.photoPath?await SafeRoadStore.getPhotoUrl(r.photoPath):null;
     const opts=statuses.map(s=>'<option '+(r.status===s?'selected':'')+'>'+esc(s)+'</option>').join('');
     const hist=(r.history||[]).map(h=>'<li><b>'+esc(h.status)+'</b> · '+new Date(h.at).toLocaleString('id-ID')+'<br>'+esc(h.by||'-')+' — '+esc(h.note||'')+'</li>').join('');
     $('report-detail').innerHTML='<h2>Detail laporan</h2>'+pill(r.status)+
@@ -48,10 +49,10 @@
       if(next==='Sudah Ditangani'&&!note){alert('Catatan atau bukti penanganan wajib diisi.');return}
       try{
         await SafeRoadStore.updateReport(id,current=>{
-          if(current.status!==next||current.adminNote!==note){current.history=current.history||[];current.history.push({status:next,at:new Date().toISOString(),by:'Admin demo lokal',note:note||'Status diperbarui.'})}
+          if(current.status!==next||current.adminNote!==note){current.history=current.history||[];current.history.push({status:next,at:new Date().toISOString(),by:'Admin SafeRoad',note:note||'Status diperbarui.'})}
           current.status=next;current.adminNote=note;current.updatedAt=new Date().toISOString();return current;
         });
-        await refresh();alert('Perubahan tersimpan pada browser ini, bukan database online.');
+        await refresh();alert('Perubahan berhasil disimpan ke database SafeRoad.');
       }catch(e){alert('Gagal menyimpan: '+e.message)}
     });
   }
@@ -59,8 +60,8 @@
   $('status-filter').addEventListener('change',renderList);
   $('search-report').addEventListener('input',renderList);
   $('reset-demo').addEventListener('click',async()=>{
-    if(!confirm('Hapus seluruh data demo pada browser ini?'))return;
-    try{await SafeRoadStore.clearReports();selected=null;await refresh();$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Data demo dihapus.</p>'}catch(e){alert(e.message)}
+    if(!confirm('Hapus PERMANEN seluruh laporan SafeRoad dan foto terkait dari database? Tindakan ini tidak dapat dibatalkan.'))return;
+    try{await SafeRoadStore.clearReports();selected=null;await refresh();$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Seluruh laporan dihapus dari database.</p>'}catch(e){alert(e.message)}
   });
   refresh();
 })();
