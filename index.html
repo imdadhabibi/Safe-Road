@@ -58,26 +58,26 @@
   <section class="container stats-grid" aria-label="Ringkasan data keselamatan">
     <article class="stat-card"><span class="stat-icon icon-blue">▤</span><div><span class="stat-label">Insiden tercatat</span><strong id="stat-accidents">1.081</strong><small>Data historis 2025</small></div></article>
     <article class="stat-card"><span class="stat-icon icon-red">✚</span><div><span class="stat-label">Korban meninggal</span><strong id="stat-fatalities">195</strong><small>Berdasarkan kolom data sumber</small></div></article>
-    <article class="stat-card"><span class="stat-icon icon-orange">⌖</span><div><span class="stat-label">Jalan Blackspot</span><strong id="stat-blackspot">122</strong><small>Segmen · sumber CUSSUM</small></div></article>
+    <article class="stat-card"><span class="stat-icon icon-orange">⌖</span><div><span class="stat-label">Jalan Blackspot</span><strong id="stat-blackspot">232</strong><small>Titik · Blackspot Cilacap KML</small></div></article>
     <article class="stat-card"><span class="stat-icon icon-purple">⌁</span><div><span class="stat-label">Jalan Blacklink</span><strong id="stat-blacklink">23</strong><small>Ruas · sumber EAN &amp; UCL</small></div></article>
   </section>
 
   <section class="container section" id="peta">
     <div class="section-heading">
-      <div><span class="section-kicker">PETA INTERAKTIF</span><h2>Pantau risiko di sekitar Anda</h2><p>Titik kecelakaan historis ditampilkan terpisah dari 435 titik Blackspot pada 10 ruas. Garis Jalan Blacklink ditampilkan untuk 10 ruas yang memiliki geometri pada GeoPackage; 13 ruas lainnya tetap tersedia pada tabel dan menunggu geometri.</p></div>
+      <div><span class="section-kicker">PETA INTERAKTIF</span><h2>Pantau risiko di sekitar Anda</h2><p>Titik kecelakaan historis ditampilkan terpisah dari 232 titik Blackspot pada 10 ruas. Garis Jalan Blacklink ditampilkan untuk 10 ruas yang memiliki geometri pada GeoPackage; 13 ruas lainnya tetap tersedia pada tabel dan menunggu geometri.</p></div>
       <button class="button button-outline" id="get-location">◎ Aktifkan GPS</button>
     </div>
     <div class="map-layout">
       <div class="surface map-surface">
         <div id="map" aria-label="Peta interaktif Kabupaten Cilacap"></div>
-        <div class="map-caption">ⓘ Titik merah menunjukkan kejadian kecelakaan historis. Titik oranye menunjukkan 435 titik Blackspot pada 10 ruas dan dapat dinyalakan atau disembunyikan melalui panel Lapisan peta. Garis ungu menunjukkan geometri 10 ruas Blacklink dari GeoPackage.</div>
+        <div class="map-caption">ⓘ Titik merah menunjukkan kejadian kecelakaan historis. Titik oranye menunjukkan 232 titik Blackspot pada 10 ruas dan dapat dinyalakan atau disembunyikan melalui panel Lapisan peta. Garis ungu menunjukkan geometri 10 ruas Blacklink dari GeoPackage.</div>
         <div class="inline-status" id="map-status" role="status">Menyiapkan peta dan memuat data…</div>
       </div>
       <aside class="map-sidebar">
         <div class="surface layer-panel">
           <h3>Lapisan peta</h3>
           <label class="layer-row"><span class="layer-swatch swatch-red"></span><span class="layer-copy"><b>Riwayat kecelakaan</b><small id="accident-layer-count">Titik GPS dari sheet Fix</small></span><input type="checkbox" id="toggle-accidents" checked></label>
-          <label class="layer-row"><span class="layer-swatch swatch-orange"></span><span class="layer-copy"><b>Blackspot</b><small id="blackspot-layer-count">Memuat 435 titik Blackspot pada 10 ruas</small></span><input type="checkbox" id="toggle-blackspot" checked aria-label="Tampilkan titik Blackspot dan STA"></label>
+          <label class="layer-row"><span class="layer-swatch swatch-orange"></span><span class="layer-copy"><b>Blackspot</b><small id="blackspot-layer-count">Memuat 232 titik Blackspot pada 10 ruas</small></span><input type="checkbox" id="toggle-blackspot" checked aria-label="Tampilkan titik Blackspot dan STA"></label>
           <label class="layer-row"><span class="layer-swatch swatch-purple"></span><span class="layer-copy"><b>Jalan Blacklink</b><small id="blacklink-layer-count">Memuat 64 segmen pada 10 ruas</small></span><input type="checkbox" id="toggle-blacklink" checked aria-label="Tampilkan geometri Jalan Blacklink"></label>
           <label class="layer-row"><span class="layer-swatch swatch-yellow"></span><span class="layer-copy"><b>Jalan berlubang</b><small>Lokasi bahaya publik (terverifikasi)</small></span><input type="checkbox" id="toggle-potholes" checked></label>
           <label class="layer-row"><span class="layer-swatch swatch-blue"></span><span class="layer-copy"><b>Posisi saya</b><small>Lokasi perangkat</small></span><input type="checkbox" id="toggle-user" checked></label>
