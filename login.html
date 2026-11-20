@@ -30,31 +30,51 @@
   <section class="surface login-card">
     <span class="section-kicker">AREA PETUGAS</span>
     <h1>Login Admin SafeRoad</h1>
-    <p>Masukkan kata sandi untuk membuka dashboard verifikasi laporan.</p>
+    <p>Masuk menggunakan akun petugas yang sudah dibuat dan diberi hak akses admin di Supabase.</p>
     <form id="admin-login" autocomplete="off">
-      <div class="login-field"><label for="admin-password">Kata sandi admin</label><input id="admin-password" type="password" required autocomplete="current-password" placeholder="Masukkan kata sandi"></div>
+      <div class="login-field"><label for="admin-email">Email petugas</label><input id="admin-email" type="email" required autocomplete="username" placeholder="nama@instansi.go.id"></div>
+      <div class="login-field"><label for="admin-password">Kata sandi</label><input id="admin-password" type="password" required autocomplete="current-password" placeholder="Masukkan kata sandi"></div>
       <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mu);margin-bottom:18px"><input type="checkbox" id="show-password"> Tampilkan kata sandi</label>
       <button class="button button-primary submit-button" type="submit">Masuk ke Dashboard →</button>
       <p class="login-error" id="login-error" role="alert"></p>
     </form>
-    <div class="login-warning"><b>Catatan prototipe:</b> autentikasi ini hanya demonstrasi sisi browser. Jangan gunakan untuk melindungi data sensitif atau sebagai login produksi. Gunakan autentikasi server seperti Supabase Auth sebelum peluncuran publik.</div>
+    <div class="login-warning"><b>Akses terbatas:</b> akun harus dibuat oleh pengelola Supabase dan memiliki role admin. Tidak tersedia pendaftaran publik.</div>
   </section>
 </main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
 <script>
 (() => {
-  const form = document.getElementById('admin-login');
-  const password = document.getElementById('admin-password');
-  const error = document.getElementById('login-error');
-  document.getElementById('show-password').addEventListener('change', e => password.type = e.target.checked ? 'text' : 'password');
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    if (password.value === 'Saferoad2026') {
-      sessionStorage.setItem('saferoad_admin_demo', 'active');
-      location.href = 'admin.html';
-    } else {
-      error.textContent = 'Kata sandi tidak sesuai. Silakan coba lagi.';
+  'use strict';
+  const form=document.getElementById('admin-login');
+  const email=document.getElementById('admin-email');
+  const password=document.getElementById('admin-password');
+  const error=document.getElementById('login-error');
+  const button=form.querySelector('[type="submit"]');
+  document.getElementById('show-password').addEventListener('change',e=>password.type=e.target.checked?'text':'password');
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();error.textContent='';
+    if(!window.safeRoadSupabaseConfigured||!window.safeRoadSupabase){
+      error.textContent='Supabase belum dikonfigurasi. Periksa js/supabase-config.js.';
+      return;
+    }
+    button.disabled=true;button.textContent='Memeriksa akun…';
+    try{
+      const {data,error:authError}=await window.safeRoadSupabase.auth.signInWithPassword({
+        email:email.value.trim(),password:password.value
+      });
+      if(authError)throw authError;
+      if(data.user?.app_metadata?.role!=='admin'){
+        await window.safeRoadSupabase.auth.signOut();
+        throw new Error('Akun ini belum diberi hak akses admin SafeRoad.');
+      }
+      location.href='admin.html';
+    }catch(err){
+      error.textContent=err.message||'Login gagal. Periksa email dan kata sandi.';
       password.focus();
-      password.select();
+    }finally{
+      button.disabled=false;button.textContent='Masuk ke Dashboard →';
     }
   });
 })();
