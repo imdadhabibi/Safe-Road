@@ -52,6 +52,9 @@
   const password=document.getElementById('admin-password');
   const error=document.getElementById('login-error');
   const button=form.querySelector('[type="submit"]');
+  if(new URLSearchParams(location.search).get('setup')==='required'){
+    error.textContent='Backend Supabase belum dikonfigurasi. Isi js/supabase-config.js terlebih dahulu.';
+  }
   document.getElementById('show-password').addEventListener('change',e=>password.type=e.target.checked?'text':'password');
   form.addEventListener('submit',async e=>{
     e.preventDefault();error.textContent='';
