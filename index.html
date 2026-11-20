@@ -125,8 +125,15 @@
   </section>
 
   <section class="container section" id="laporan-saya">
-    <div class="section-heading"><div><span class="section-kicker">STATUS PELAPORAN</span><h2>Riwayat laporan saya</h2><p>Publik dapat mengirim laporan. Antrean, foto, dan status internal hanya dapat diakses admin.</p></div><a class="button button-outline" href="admin.html">Login admin ↗</a></div>
-    <div class="surface my-reports-card"><div id="my-reports"><p class="muted-text">Belum ada ID laporan tersimpan pada perangkat ini.</p></div></div>
+    <div class="section-heading"><div><span class="section-kicker">STATUS PELAPORAN</span><h2>Riwayat laporan saya</h2><p>Gunakan kode rahasia untuk melacak laporan tanpa akun, atau login untuk melihat seluruh riwayat akun.</p></div><a class="button button-outline" href="akun.html">Login / Daftar ↗</a></div>
+    <div class="surface my-reports-card">
+      <div id="my-reports"><p class="muted-text">Memuat riwayat laporan…</p></div>
+      <div style="border-top:1px solid var(--bd);margin-top:18px;padding-top:18px">
+        <h3>Lacak laporan tanpa login</h3><p class="muted-text">Masukkan kode pelacakan rahasia yang diterima setelah mengirim laporan.</p>
+        <form id="tracking-form" style="display:flex;gap:10px;flex-wrap:wrap"><input id="tracking-code" required minlength="24" maxlength="100" autocomplete="off" placeholder="Tempel kode pelacakan" style="flex:1;min-width:220px;padding:12px;border:1px solid var(--bd);border-radius:10px"><button class="button button-primary" type="submit">Lacak laporan</button></form>
+        <div id="tracking-result" role="status" style="margin-top:12px"></div>
+      </div>
+    </div>
   </section>
 </main>
 <footer class="site-footer"><div class="container footer-inner"><b>SafeRoad · Sistem Informasi Keselamatan Jalan Kabupaten Cilacap</b><span>Data historis 2025 · Laporan online</span></div></footer>
