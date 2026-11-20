@@ -142,8 +142,8 @@
   async function renderVerifiedReports(){
     if(!state.map)return;
     state.potholeLayer.clearLayers();
-    const rows=await SafeRoadStore.getAllReports();
-    rows.filter(r=>r.status==='Terverifikasi' && Number.isFinite(r.latitude) && Number.isFinite(r.longitude)).forEach(r=>{
+    const rows=await SafeRoadStore.getVerifiedReports();
+    rows.filter(r=>Number.isFinite(r.latitude) && Number.isFinite(r.longitude)).forEach(r=>{
       L.circleMarker([r.latitude,r.longitude],{radius:8,color:'#b77912',weight:2,fillColor:'#e8ad20',fillOpacity:.9})
        .bindPopup('<b>Jalan berlubang terverifikasi</b><br>'+esc(r.roadName)+'<br>'+esc(r.description)).addTo(state.potholeLayer);
     });
@@ -206,8 +206,8 @@
   }
   function distance(a,b,c,d){const rad=x=>x*Math.PI/180,R=6371000,p=rad(c-a),q=rad(d-b),x=Math.sin(p/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(q/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
   async function nearby(lat,lon){
-    const reports=await SafeRoadStore.getAllReports();
-    const near=reports.filter(r=>r.status==='Terverifikasi'&&distance(lat,lon,r.latitude,r.longitude)<=500);
+    const reports=await SafeRoadStore.getVerifiedReports();
+    const near=reports.filter(r=>distance(lat,lon,r.latitude,r.longitude)<=500);
     $('safety-note').textContent=near.length?'Perhatian: ada '+near.length+' laporan jalan berlubang terverifikasi dalam radius 500 meter. Kurangi kecepatan dan tetap waspada.':'Tidak ada laporan jalan berlubang terverifikasi dalam radius 500 meter dari lokasi GPS Anda. Layer historis tidak otomatis menjadi peringatan.';
     if(near.length)$('safety-note').parentElement.parentElement.classList.add('notice-active');
     else $('safety-note').parentElement.parentElement.classList.remove('notice-active');
