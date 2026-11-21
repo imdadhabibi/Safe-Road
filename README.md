@@ -57,14 +57,14 @@ Jangan membuka HTML menggunakan skema `file://`, karena browser dapat memblokir 
 - Peta Leaflet + OpenStreetMap, 1.081 titik historis, 64 segmen garis Blacklink pada 10 ruas (layer ungu), dan tombol GPS.
 - Tabel 122 Blackspot dan 23 Blacklink.
 - Form laporan foto, deskripsi, nama ruas, GPS atau pin manual, dan persetujuan.
-- Form laporan mengirim data dan foto ke Supabase; antrean laporan menjadi satu untuk semua perangkat.
+- Source form laporan mengirim data dan foto ke Supabase; uji end-to-end lintas perangkat masih perlu dilakukan.
 - Admin masuk menggunakan Supabase Auth, lalu dapat membaca antrean, memeriksa foto/koordinat, mengubah status, dan menyimpan riwayat status pada database online.
 
 ## Batasan penting
 
-**Versi ini menggunakan Supabase sebagai backend, tetapi wajib menyelesaikan konfigurasi proyek Supabase sebelum form dan dashboard dipakai.**
+**Status audit 21 November 2026:** proyek Supabase aktif dan tabel `public.reports` sudah tersedia dengan RLS aktif. Source frontend menggunakan Supabase Auth, Database, dan Storage. Meski demikian, alur end-to-end lintas perangkat, email confirmation, dan seluruh skenario pengujian masih harus dibuktikan sebelum penggunaan operasional.
 
-- Isi URL proyek dan Publishable Key pada `js/supabase-config.js`, lalu jalankan `supabase/setup.sql` di SQL Editor.
+- Konfigurasi frontend menggunakan Project URL dan Publishable Key pada `js/supabase-config.js`. Jangan pernah menaruh Secret/service_role key di browser.
 - `admin.html` dilindungi Supabase Auth dan PostgreSQL Row Level Security. Admin harus dibuat di Supabase Auth lalu diberi `app_metadata.role = admin` sesuai `docs/SUPABASE-SETUP.md`.
 - Public hanya dapat mengirim laporan dan melihat titik bahaya yang sudah terverifikasi (kolom publik minimum). Hanya admin yang dapat melihat antrean, identitas pelapor, foto privat, catatan verifikasi, mengubah status, dan menghapus laporan.
 - GPS memerlukan izin browser dan HTTPS atau localhost.
@@ -86,3 +86,6 @@ Ikuti [panduan setup Supabase](docs/SUPABASE-SETUP.md). Salin `js/supabase-confi
 - [Laporan Audit dan QC Milestone 0](docs/qc/PHASE-0-AUDIT-REPORT.md)
 - [Panduan GitHub Pages](GITHUB-PAGES.md)
 - [Validasi dan integrasi GeoPackage Blacklink](docs/GIS-BLACKLINK-GEOPACKAGE.md)
+- [Data Dictionary](docs/DATA-DICTIONARY.md)
+- [Rencana pengujian 10 laporan](docs/HASIL-PENGUJIAN-10-LAPORAN.md)
+- [Verifikasi lima lokasi Blackspot](docs/VERIFIKASI-5-LOKASI-BLACKSPOT.md)
