@@ -24,6 +24,7 @@
       <a href="#peta" data-nav="peta">Peta keselamatan</a>
       <a href="#analisis" data-nav="analisis">Analisis data</a>
       <a href="#laporan" data-nav="laporan">Laporkan jalan</a>
+      <a href="akun.html">Akun pelapor</a>
     </nav>
     <a class="admin-button" href="login.html">Admin ↗</a>
   </div>
@@ -104,11 +105,11 @@
         <div class="process-step"><span>01</span><div><b>Ambil foto</b><small>Foto permukaan jalan dengan jelas.</small></div></div>
         <div class="process-step"><span>02</span><div><b>Kirim lokasi</b><small>Gunakan GPS atau pilih titik pada peta.</small></div></div>
         <div class="process-step"><span>03</span><div><b>Admin memverifikasi</b><small>Titik tampil untuk publik setelah disetujui.</small></div></div>
-        <p class="demo-hint">Prototipe lokal · laporan tersimpan pada browser yang digunakan untuk pengujian.</p>
+        <p class="demo-hint">Pelaporan dapat dilakukan tanpa akun maupun setelah login. Tanpa akun, simpan kode pelacakan untuk memeriksa status laporan.</p>
       </div>
       <div class="surface report-form-card">
         <div class="form-title"><span class="form-plus">＋</span><div><h3>Form laporan jalan</h3><small>Kolom bertanda * wajib diisi.</small></div></div>
-        <div id="profile-box" class="profile-box"></div>
+        <div id="profile-box" class="profile-box">Anda dapat mengirim laporan sebagai tamu atau <a href="akun.html">login / buat akun</a> agar riwayat tersimpan otomatis.</div>
         <form id="report-form">
           <div class="form-grid"><div class="form-field"><label for="reporter-name">Nama pelapor (opsional)</label><input id="reporter-name" maxlength="80" placeholder="Nama Anda"></div><div class="form-field"><label for="reporter-contact">Nomor HP/WhatsApp (opsional)</label><input id="reporter-contact" inputmode="tel" maxlength="25" placeholder="08xxxxxxxxxx"></div></div>
           <div class="form-field"><label for="road-name">Nama ruas jalan *</label><input id="road-name" required maxlength="120" placeholder="Contoh: Jl. Diponegoro"></div>
@@ -126,12 +127,15 @@
 
   <section class="container section" id="laporan-saya">
     <div class="section-heading"><div><span class="section-kicker">STATUS PELAPORAN</span><h2>Riwayat laporan saya</h2><p>Laporan yang dibuat pada browser ini dapat dilihat dan dipantau di bagian ini.</p></div><a class="button button-outline" href="admin.html">Buka dashboard admin demo ↗</a></div>
-    <div class="surface my-reports-card"><div id="my-reports"><p class="muted-text">Belum ada laporan pada browser ini.</p></div></div>
+    <div class="surface my-reports-card"><div id="my-reports"><p class="muted-text">Login untuk melihat seluruh riwayat akun, atau masukkan kode pelacakan laporan tamu.</p></div><form id="tracking-form" class="coordinate-row" style="margin-top:16px"><div class="form-field" style="flex:1"><label for="tracking-code">Kode pelacakan laporan tamu</label><input id="tracking-code" autocomplete="off" placeholder="Tempel kode pelacakan 64 karakter"></div><button class="button button-outline" type="submit">Lacak laporan</button></form><p id="tracking-message" class="form-message" role="status"></p></div>
   </section>
 </main>
 <footer class="site-footer"><div class="container footer-inner"><b>SafeRoad · Sistem Informasi Keselamatan Jalan Kabupaten Cilacap</b><span>Data historis 2025 · Prototipe lokal</span></div></footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/store.js"></script>
 <script src="js/app.js"></script>
 </body>
