@@ -71,7 +71,7 @@
     $('stat-accidents').textContent=fmt(fs.length);
     // Total fatalities is from the source workbook Fix (1,081 events; 195 fatalities). Coordinate archive is intentionally public-coordinate-only.
     $('stat-fatalities').textContent='195';
-    $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Blackspot/Blacklink tersedia pada tabel analisis; geometri peta menunggu validasi GIS.';
+    $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Memuat titik Blackspot dari file KML terbaru.';
     if(fs.length)state.map.fitBounds(state.accidentLayer.getBounds().pad(.06));
   }
   function renderBlackspotKml(data) {
@@ -87,7 +87,7 @@
           road_name:data.roads[roadIndex]||'Nama ruas tidak tersedia',
           distance_m:distance>=0?distance:'',
           remark:data.remarks[remarkIndex]||'',
-          source_file:'STA 10 JALAN.kml'
+          source_file:'Blackspot Cilacap.kml'
         }
       };
     });
@@ -110,7 +110,7 @@
     layer.eachLayer(marker=>state.blackspotKmlLayer.addLayer(marker));
     if($('toggle-blackspot').checked)state.blackspotKmlLayer.addTo(state.map);
     else state.map.removeLayer(state.blackspotKmlLayer);
-    $('blackspot-layer-count').textContent=fmt(features.length)+' titik STA pada '+fmt(data.roads.length)+' ruas';
+    $('blackspot-layer-count').textContent=fmt(features.length)+' titik pada '+fmt(data.roads.length)+' ruas · KML terbaru';\n    $('stat-blackspot').textContent=fmt(features.length);
     $('map-status').textContent='Data peta dimuat: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan historis, '+fmt(features.length)+' titik Blackspot dari '+fmt(data.roads.length)+' ruas, serta geometri Blacklink yang tersedia.';
     const bounds=L.featureGroup([state.accidentLayer,state.blackspotKmlLayer]).getBounds();
     if(bounds.isValid())state.map.fitBounds(bounds.pad(0.06),{maxZoom:11});
@@ -142,18 +142,33 @@
   async function renderVerifiedReports(){
     if(!state.map)return;
     state.potholeLayer.clearLayers();
-    const rows=await SafeRoadStore.getAllReports();
-    rows.filter(r=>r.status==='Terverifikasi' && Number.isFinite(r.latitude) && Number.isFinite(r.longitude)).forEach(r=>{
-      L.circleMarker([r.latitude,r.longitude],{radius:8,color:'#b77912',weight:2,fillColor:'#e8ad20',fillOpacity:.9})
-       .bindPopup('<b>Jalan berlubang terverifikasi</b><br>'+esc(r.roadName)+'<br>'+esc(r.description)).addTo(state.potholeLayer);
-    });
-    if($('toggle-potholes').checked)state.potholeLayer.addTo(state.map);
+    try{
+      const rows=await SafeRoadStore.getVerifiedReports();
+      rows.filter(r=>Number.isFinite(r.latitude) && Number.isFinite(r.longitude)).forEach(r=>{
+        L.circleMarker([r.latitude,r.longitude],{radius:8,color:'#b77912',weight:2,fillColor:'#e8ad20',fillOpacity:.9})
+         .bindPopup('<b>Jalan berlubang terverifikasi</b><br>'+esc(r.roadName)).addTo(state.potholeLayer);
+      });
+      if($('toggle-potholes').checked)state.potholeLayer.addTo(state.map);
+    }catch(err){
+      $('map-status').textContent='Layer laporan online belum tersedia: '+err.message;
+    }
   }
   async function renderMyReports(){
-    const box=$('my-reports'),profile=state.profile||readProfile();
-    if(!profile){box.innerHTML='<p class="muted-text">Isi nama pelapor pada formulir untuk membuat profil demo, lalu kirim laporan pertama.</p>';return;}
-    const rows=(await SafeRoadStore.getAllReports()).filter(r=>r.userId===profile.id);
-    box.innerHTML=rows.length?rows.map(r=>'<article class="report-item"><div><b>'+esc(r.roadName)+'</b><small>'+esc(r.id)+' · '+new Date(r.createdAt).toLocaleString('id-ID')+'<br>'+esc(r.description)+'</small>'+(r.adminNote?'<small>Catatan admin: '+esc(r.adminNote)+'</small>':'')+'</div>'+pill(r.status)+'</article>').join(''):'<p class="muted-text">Belum ada laporan dari profil ini pada browser.</p>';
+    const box=$('my-reports');let sent=[];
+    try{sent=JSON.parse(localStorage.getItem('saferoad-report-tickets')||'[]')}catch(_){}
+    let html='';
+    try{
+      const user=await SafeRoadStore.currentUser();
+      if(user){
+        const rows=await SafeRoadStore.getMyReports();
+        html+='<p class="muted-text">Login sebagai '+esc(user.email||'pengguna')+'. Riwayat akun tersimpan di database dan dapat dibuka dari perangkat lain.</p>';
+        html+=rows.length?rows.map(r=>'<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div>'+pill(r.status)+'</article>').join(''):'<p class="muted-text">Belum ada laporan pada akun ini.</p>';
+        html+='<p><a href="akun.html">Kelola akun ↗</a> · <button class="text-button" id="home-logout">Keluar</button></p>';
+      }else html+='<p class="muted-text">Anda belum login. Laporan tanpa akun dapat dilacak menggunakan kode rahasia yang diberikan setelah pengiriman.</p><p><a href="akun.html">Login / Daftar akun pelapor ↗</a></p>';
+    }catch(e){html+='<p class="muted-text">Riwayat akun belum dapat dimuat: '+esc(e.message)+'</p>'}
+    if(sent.length)html+='<h3>Referensi tersimpan pada perangkat ini</h3>'+sent.slice(0,5).map(r=>'<article class="report-item"><div><b>'+esc(r.roadName)+'</b><small>ID: '+esc(r.id)+'</small></div><span class="status-pill status-pending">Gunakan kode</span></article>').join('');
+    box.innerHTML=html;
+    const logout=$('home-logout');if(logout)logout.addEventListener('click',async()=>{await window.safeRoadSupabase.auth.signOut();await renderMyReports()});
   }
   function renderTable(){
     const bs=state.selected==='blackspot', data=bs?state.blackspots:state.blacklinks;
@@ -177,14 +192,13 @@
     const url=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));
     const a=document.createElement('a');a.href=url;a.download=(bs?'jalan-blackspot':'jalan-blacklink')+'.csv';a.click();URL.revokeObjectURL(url);
   }
-  function readProfile(){try{return JSON.parse(localStorage.getItem('saferoad-demo-profile')||'null')}catch(_){return null}}
+  function readProfile(){return null}
   function ensureProfile(){
-    const name=$('reporter-name').value.trim()||'Pengguna SafeRoad',contact=$('reporter-contact').value.trim();
-    let p=state.profile||readProfile();
-    if(!p||p.name!==name||p.contact!==contact){p={id:'demo-'+(crypto.randomUUID?crypto.randomUUID():Date.now()),name,contact};localStorage.setItem('saferoad-demo-profile',JSON.stringify(p))}
-    state.profile=p;$('profile-box').hidden=false;
-    $('profile-box').innerHTML='<b>Profil demo:</b> '+esc(name)+(contact?' · '+esc(contact):'')+'<br><small>Hanya tersimpan di browser ini; belum merupakan akun online.</small>';
-    return p;
+    const name=$('reporter-name').value.trim()||'Pengguna SafeRoad';
+    const contact=$('reporter-contact').value.trim();
+    $('profile-box').hidden=false;
+    $('profile-box').innerHTML='<b>Pelapor:</b> '+esc(name)+(contact?' · '+esc(contact):'')+'<br><small>Informasi ini hanya diteruskan bersama laporan kepada petugas admin.</small>';
+    return {name,contact};
   }
   function setCoordinates(lat,lon,msg){$('latitude').value=lat.toFixed(7);$('longitude').value=lon.toFixed(7);$('coordinate-status').textContent=msg||'Koordinat berhasil diisi.'}
   function gps(target){
@@ -207,11 +221,15 @@
   }
   function distance(a,b,c,d){const rad=x=>x*Math.PI/180,R=6371000,p=rad(c-a),q=rad(d-b),x=Math.sin(p/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(q/2)**2;return 2*R*Math.asin(Math.sqrt(x))}
   async function nearby(lat,lon){
-    const reports=await SafeRoadStore.getAllReports();
-    const near=reports.filter(r=>r.status==='Terverifikasi'&&distance(lat,lon,r.latitude,r.longitude)<=500);
-    $('safety-note').textContent=near.length?'Perhatian: ada '+near.length+' laporan jalan berlubang terverifikasi dalam radius 500 meter. Kurangi kecepatan dan tetap waspada.':'Tidak ada laporan jalan berlubang terverifikasi dalam radius 500 meter dari lokasi GPS Anda. Layer historis tidak otomatis menjadi peringatan.';
-    if(near.length)$('safety-note').parentElement.parentElement.classList.add('notice-active');
-    else $('safety-note').parentElement.parentElement.classList.remove('notice-active');
+    try{
+      const reports=await SafeRoadStore.getVerifiedReports();
+      const near=reports.filter(r=>distance(lat,lon,r.latitude,r.longitude)<=500);
+      $('safety-note').textContent=near.length?'Perhatian: ada '+near.length+' laporan jalan berlubang terverifikasi dalam radius 500 meter. Kurangi kecepatan dan tetap waspada.':'Tidak ada laporan jalan berlubang terverifikasi dalam radius 500 meter dari lokasi GPS Anda. Layer historis tidak otomatis menjadi peringatan.';
+      if(near.length)$('safety-note').parentElement.parentElement.classList.add('notice-active');
+      else $('safety-note').parentElement.parentElement.classList.remove('notice-active');
+    }catch(err){
+      $('safety-note').textContent='Data peringatan online belum dapat dimuat: '+err.message;
+    }
   }
   async function reportSubmit(e){
     e.preventDefault();$('report-message').textContent='';
@@ -221,14 +239,30 @@
     if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){$('report-message').textContent='Unggah foto JPG/PNG/WEBP maksimal 5 MB.';return}
     if(!$('report-consent').checked){$('report-message').textContent='Persetujuan wajib dicentang.';return}
     const profile=ensureProfile();
+    const submitButton=$('report-form').querySelector('[type="submit"]');
+    submitButton.disabled=true;submitButton.textContent='Mengirim laporan…';
     try{
-      const now=new Date().toISOString(),blob=file.slice(0,file.size,file.type);
-      const report={id:'SR-'+Date.now().toString(36).toUpperCase(),userId:profile.id,reporterName:profile.name,reporterContact:profile.contact||'',roadName:$('road-name').value.trim(),description:$('report-description').value.trim(),latitude:lat,longitude:lon,photoBlob:blob,photoType:file.type,createdAt:now,status:'Menunggu Verifikasi',adminNote:'',history:[{status:'Menunggu Verifikasi',at:now,by:'Pengguna demo lokal',note:'Laporan disimpan pada browser ini.'}]};
-      await SafeRoadStore.addReport(report);$('report-form').reset();$('profile-box').hidden=false;$('profile-box').innerHTML='<b>Profil demo:</b> '+esc(profile.name)+'<br><small>Hanya tersimpan di browser ini.</small>';
-      $('photo-preview').classList.add('hidden');$('photo-preview').removeAttribute('src');$('coordinate-status').textContent='Koordinat belum diisi.';
-      $('report-message').textContent='Laporan '+report.id+' berhasil disimpan pada browser ini. Status: Menunggu Verifikasi.';
-      $('report-message').className='form-message success';await renderMyReports();await renderVerifiedReports();
-    }catch(err){$('report-message').textContent='Gagal menyimpan laporan: '+err.message;$('report-message').className='form-message error'}
+      const now=new Date().toISOString();
+      const report={id:'SR-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,8).toUpperCase(),
+        reporterName:profile.name,reporterContact:profile.contact,roadName:$('road-name').value.trim(),
+        description:$('report-description').value.trim(),latitude:lat,longitude:lon,
+        photoBlob:file.slice(0,file.size,file.type),photoType:file.type};
+      const result=await SafeRoadStore.addReport(report);
+      let tickets=[];try{tickets=JSON.parse(localStorage.getItem('saferoad-report-tickets')||'[]')}catch(_){}
+      tickets.unshift({id:result.id,roadName:result.roadName,createdAt:result.createdAt,trackingToken:result.trackingToken});
+      localStorage.setItem('saferoad-report-tickets',JSON.stringify(tickets.slice(0,10)));
+      $('report-form').reset();
+      $('photo-preview').classList.add('hidden');$('photo-preview').removeAttribute('src');
+      $('coordinate-status').textContent='Koordinat belum diisi.';
+      $('report-message').innerHTML='Laporan berhasil dikirim. Kode pelacakan rahasia Anda:<br><b>'+esc(result.trackingToken)+'</b><br>Simpan kode ini untuk memeriksa status laporan dari perangkat lain. ID: '+esc(result.id)+'. Status: Menunggu Verifikasi.';
+      $('report-message').className='form-message success';
+      renderMyReports();
+    }catch(err){
+      $('report-message').textContent='Gagal mengirim laporan: '+err.message;
+      $('report-message').className='form-message error';
+    }finally{
+      submitButton.disabled=false;submitButton.textContent='Kirim laporan →';
+    }
   }
   function setup(){
     $('mobile-menu').addEventListener('click',()=>{const open=$('main-nav').classList.toggle('open');$('mobile-menu').setAttribute('aria-expanded',String(open))});
@@ -240,6 +274,15 @@
     $('toggle-user').addEventListener('change',e=>{if(e.target.checked)return;if(state.userMarker)state.map.removeLayer(state.userMarker);if(state.accuracy)state.map.removeLayer(state.accuracy);state.userMarker=state.accuracy=null});
     $('get-location').addEventListener('click',()=>gps('get-location'));$('report-gps').addEventListener('click',()=>gps('report-gps'));
     $('pick-map-location').addEventListener('click',()=>{state.picking=!state.picking;$('pick-map-location').textContent=state.picking?'Klik lokasi pada peta…':'Pilih titik pada peta';$('coordinate-status').textContent=state.picking?'Klik titik yang diinginkan pada peta.':'Pemilihan titik dibatalkan.';$('map').classList.toggle('map-picking',state.picking);if(state.picking)$('peta').scrollIntoView({behavior:'smooth'})});
+    $('tracking-form').addEventListener('submit',async e=>{
+      e.preventDefault();const box=$('tracking-result'),token=$('tracking-code').value.trim();
+      box.textContent='Mencari laporan…';
+      try{
+        const r=await SafeRoadStore.getTrackingReport(token);
+        const statusClass=r.status==='Terverifikasi'?'status-verified':r.status==='Ditolak'?'status-rejected':r.status==='Sudah Ditangani'?'status-done':'status-pending';
+        box.innerHTML='<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.report_id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div><span class="status-pill '+statusClass+'">'+esc(r.status)+'</span></article><small class="muted-text">Pembaruan terakhir: '+(r.updated_at?new Date(r.updated_at).toLocaleString('id-ID'):'Belum ada')+'</small>';
+      }catch(err){box.textContent=err.message}
+    });
     $('report-form').addEventListener('submit',reportSubmit);
     $('report-photo').addEventListener('change',()=>{const f=$('report-photo').files[0];if(!f)return;const old=$('photo-preview').dataset.url;if(old)URL.revokeObjectURL(old);const url=URL.createObjectURL(f);$('photo-preview').dataset.url=url;$('photo-preview').src=url;$('photo-preview').classList.remove('hidden')});
     document.querySelectorAll('.data-tab').forEach(b=>b.addEventListener('click',()=>{state.selected=b.dataset.kind;state.page=1;document.querySelectorAll('.data-tab').forEach(x=>x.classList.toggle('active',x===b));renderTable()}));
@@ -256,8 +299,8 @@
       const [acc,bs,bl]=await Promise.all([getJSON(files.accidents),getJSON(files.blackspot),getJSON(files.blacklink)]);
       state.accidents=acc;state.blackspots=bs;state.blacklinks=bl;
       renderAccidents();renderTable();
-      $('stat-blackspot').textContent=fmt(bs.length);$('stat-blacklink').textContent=fmt(bl.length);
-      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik kecelakaan historis, '+fmt(bs.length)+' data Blackspot pada tabel, dan '+fmt(bl.length)+' ruas Blacklink. Sedang memuat titik STA/Blackspot dari KML.';
+      $('stat-blackspot').textContent='—';$('stat-blacklink').textContent=fmt(bl.length);
+      $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' titik kecelakaan historis, '+fmt(bs.length)+' data Blackspot pada tabel, dan '+fmt(bl.length)+' ruas Blacklink. Sedang memuat titik Blackspot dari KML.';
       try {
         const blackspotKml=await getJSON(files.blackspotKml);
         state.blackspotKml=blackspotKml;
