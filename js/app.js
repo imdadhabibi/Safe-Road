@@ -110,7 +110,8 @@
     layer.eachLayer(marker=>state.blackspotKmlLayer.addLayer(marker));
     if($('toggle-blackspot').checked)state.blackspotKmlLayer.addTo(state.map);
     else state.map.removeLayer(state.blackspotKmlLayer);
-    $('blackspot-layer-count').textContent=fmt(features.length)+' titik pada '+fmt(data.roads.length)+' ruas · KML terbaru';\n    $('stat-blackspot').textContent=fmt(features.length);
+    $('blackspot-layer-count').textContent=fmt(features.length)+' titik pada '+fmt(data.roads.length)+' ruas · KML terbaru';
+    $('stat-blackspot').textContent=fmt(features.length);
     $('map-status').textContent='Data peta dimuat: '+fmt((state.accidents?.features||[]).length)+' titik kecelakaan historis, '+fmt(features.length)+' titik Blackspot dari '+fmt(data.roads.length)+' ruas, serta geometri Blacklink yang tersedia.';
     const bounds=L.featureGroup([state.accidentLayer,state.blackspotKmlLayer]).getBounds();
     if(bounds.isValid())state.map.fitBounds(bounds.pad(0.06),{maxZoom:11});
