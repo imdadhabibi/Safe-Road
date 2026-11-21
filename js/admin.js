@@ -58,9 +58,5 @@
   $('refresh').addEventListener('click',refresh);
   $('status-filter').addEventListener('change',renderList);
   $('search-report').addEventListener('input',renderList);
-  $('reset-demo').addEventListener('click',async()=>{
-    if(!confirm('Hapus seluruh laporan dari database? Tindakan ini tidak dapat dibatalkan.'))return;
-    try{await SafeRoadStore.clearReports();selected=null;await refresh();$('report-detail').innerHTML='<h2>Detail laporan</h2><p class="muted-text">Data laporan berhasil dihapus.</p>'}catch(e){alert(e.message)}
-  });
   refresh();
 })();
