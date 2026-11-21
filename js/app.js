@@ -107,10 +107,19 @@
     if($('toggle-potholes').checked)state.potholeLayer.addTo(state.map);
   }
   async function renderMyReports(){
-    const box=$('my-reports'),profile=state.profile||readProfile();
-    if(!profile){box.innerHTML='<p class="muted-text">Isi nama pelapor pada formulir untuk membuat profil demo, lalu kirim laporan pertama.</p>';return;}
-    const rows=(await SafeRoadStore.getAllReports()).filter(r=>r.userId===profile.id);
-    box.innerHTML=rows.length?rows.map(r=>'<article class="report-item"><div><b>'+esc(r.roadName)+'</b><small>'+esc(r.id)+' · '+new Date(r.createdAt).toLocaleString('id-ID')+'<br>'+esc(r.description)+'</small>'+(r.adminNote?'<small>Catatan admin: '+esc(r.adminNote)+'</small>':'')+'</div>'+pill(r.status)+'</article>').join(''):'<p class="muted-text">Belum ada laporan dari profil ini pada browser.</p>';
+    const box=$('my-reports');
+    try {
+      const user=await SafeRoadStore.currentUser();
+      if(user){
+        const rows=await SafeRoadStore.getMyReports();
+        box.innerHTML=rows.length?rows.map(r=>'<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div>'+pill(r.status)+'</article>').join(''):'<p class="muted-text">Belum ada laporan dari akun ini.</p>';
+        return;
+      }
+      const tokens=JSON.parse(localStorage.getItem('saferoad-guest-tracking')||'[]');
+      if(!tokens.length){box.innerHTML='<p class="muted-text">Belum ada laporan tamu yang tersimpan di perangkat ini. Simpan kode pelacakan setelah mengirim laporan agar dapat memeriksa status dari perangkat mana pun.</p>';return;}
+      const rows=await Promise.all(tokens.map(async token=>{try{return await SafeRoadStore.getTrackingReport(token)}catch(_){return null}}));
+      box.innerHTML=rows.filter(Boolean).map(r=>'<article class="report-item"><div><b>'+esc(r.road_name)+'</b><small>'+esc(r.report_id)+' · '+new Date(r.created_at).toLocaleString('id-ID')+'</small></div>'+pill(r.status)+'</article>').join('')||'<p class="muted-text">Belum ada riwayat pelacakan yang ditemukan.</p>';
+    } catch(e) { box.innerHTML='<p class="muted-text">Riwayat belum dapat dimuat: '+esc(e.message)+'</p>'; }
   }
   function renderTable(){
     const bs=state.selected==='blackspot', data=bs?state.blackspots:state.blacklinks;
@@ -177,15 +186,23 @@
     if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat>90||lon < -180||lon>180){$('report-message').textContent='Koordinat tidak valid.';return}
     if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>5*1024*1024){$('report-message').textContent='Unggah foto JPG/PNG/WEBP maksimal 5 MB.';return}
     if(!$('report-consent').checked){$('report-message').textContent='Persetujuan wajib dicentang.';return}
-    const profile=ensureProfile();
     try{
-      const now=new Date().toISOString(),blob=file.slice(0,file.size,file.type);
-      const report={id:'SR-'+Date.now().toString(36).toUpperCase(),userId:profile.id,reporterName:profile.name,reporterContact:profile.contact||'',roadName:$('road-name').value.trim(),description:$('report-description').value.trim(),latitude:lat,longitude:lon,photoBlob:blob,photoType:file.type,createdAt:now,status:'Menunggu Verifikasi',adminNote:'',history:[{status:'Menunggu Verifikasi',at:now,by:'Pengguna demo lokal',note:'Laporan disimpan pada browser ini.'}]};
-      await SafeRoadStore.addReport(report);$('report-form').reset();$('profile-box').hidden=false;$('profile-box').innerHTML='<b>Profil demo:</b> '+esc(profile.name)+'<br><small>Hanya tersimpan di browser ini.</small>';
+      const blob=file.slice(0,file.size,file.type);
+      const result=await SafeRoadStore.addReport({reporterName:$('reporter-name').value.trim(),reporterContact:$('reporter-contact').value.trim(),roadName:$('road-name').value.trim(),description:$('report-description').value.trim(),latitude:lat,longitude:lon,photoBlob:blob});
+      if(!result.registered){
+        const tokens=JSON.parse(localStorage.getItem('saferoad-guest-tracking')||'[]');tokens.unshift(result.trackingToken);localStorage.setItem('saferoad-guest-tracking',JSON.stringify([...new Set(tokens)].slice(0,20)));
+        $('tracking-code').value=result.trackingToken;
+        $('report-message').textContent='Laporan berhasil dikirim. Kode pelacakan Anda: '+result.trackingToken+' — salin dan simpan kode ini untuk melacak laporan dari perangkat lain.';
+      } else $('report-message').textContent='Laporan berhasil dikirim dan terhubung ke akun Anda. Status: Menunggu Verifikasi.';
+      $('report-message').className='form-message success';$('report-form').reset();
       $('photo-preview').classList.add('hidden');$('photo-preview').removeAttribute('src');$('coordinate-status').textContent='Koordinat belum diisi.';
-      $('report-message').textContent='Laporan '+report.id+' berhasil disimpan pada browser ini. Status: Menunggu Verifikasi.';
-      $('report-message').className='form-message success';await renderMyReports();await renderVerifiedReports();
+      await renderMyReports();await renderVerifiedReports();
     }catch(err){$('report-message').textContent='Gagal menyimpan laporan: '+err.message;$('report-message').className='form-message error'}
+  }
+  async function trackGuestReport(e){
+    e.preventDefault();const token=$('tracking-code').value.trim();
+    try{const r=await SafeRoadStore.getTrackingReport(token);$('tracking-message').textContent='Laporan '+r.report_id+' · '+r.road_name+' · Status: '+r.status+' · Dibuat '+new Date(r.created_at).toLocaleString('id-ID');$('tracking-message').className='form-message success'}
+    catch(err){$('tracking-message').textContent=err.message;$('tracking-message').className='form-message error'}
   }
   function setup(){
     $('mobile-menu').addEventListener('click',()=>{const open=$('main-nav').classList.toggle('open');$('mobile-menu').setAttribute('aria-expanded',String(open))});
@@ -196,7 +213,7 @@
     $('toggle-user').addEventListener('change',e=>{if(e.target.checked)return;if(state.userMarker)state.map.removeLayer(state.userMarker);if(state.accuracy)state.map.removeLayer(state.accuracy);state.userMarker=state.accuracy=null});
     $('get-location').addEventListener('click',()=>gps('get-location'));$('report-gps').addEventListener('click',()=>gps('report-gps'));
     $('pick-map-location').addEventListener('click',()=>{state.picking=!state.picking;$('pick-map-location').textContent=state.picking?'Klik lokasi pada peta…':'Pilih titik pada peta';$('coordinate-status').textContent=state.picking?'Klik titik yang diinginkan pada peta.':'Pemilihan titik dibatalkan.';$('map').classList.toggle('map-picking',state.picking);if(state.picking)$('peta').scrollIntoView({behavior:'smooth'})});
-    $('report-form').addEventListener('submit',reportSubmit);
+    $('report-form').addEventListener('submit',reportSubmit);$('tracking-form').addEventListener('submit',trackGuestReport);
     $('report-photo').addEventListener('change',()=>{const f=$('report-photo').files[0];if(!f)return;const old=$('photo-preview').dataset.url;if(old)URL.revokeObjectURL(old);const url=URL.createObjectURL(f);$('photo-preview').dataset.url=url;$('photo-preview').src=url;$('photo-preview').classList.remove('hidden')});
     document.querySelectorAll('.data-tab').forEach(b=>b.addEventListener('click',()=>{state.selected=b.dataset.kind;state.page=1;document.querySelectorAll('.data-tab').forEach(x=>x.classList.toggle('active',x===b));renderTable()}));
     $('analysis-search').addEventListener('input',()=>{state.page=1;renderTable()});
@@ -205,8 +222,7 @@
     window.addEventListener('focus',()=>{renderMyReports();renderVerifiedReports()});
   }
   async function boot(){
-    setup();state.profile=readProfile();$('profile-box').hidden=!state.profile;
-    if(state.profile)$('profile-box').innerHTML='<b>Profil demo:</b> '+esc(state.profile.name)+'<br><small>Hanya tersimpan di browser ini.</small>';
+    setup();
     initMap();
     try{
       const [acc,bs,bl]=await Promise.all([getJSON(files.accidents),getJSON(files.blackspot),getJSON(files.blacklink)]);
