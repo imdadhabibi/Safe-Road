@@ -7,7 +7,7 @@
   const isAdmin=async()=>{const {data,error}=await client().auth.getSession();fail(error,'Gagal membaca sesi.');return data.session?.user?.app_metadata?.role==='admin'};
   // getUser() calls the Auth user endpoint and can throw "Auth session missing!" for guests.
   // getSession() is local/session-aware and safely returns null when the visitor is not signed in.
-  const currentUser=async()=>{const {data,error}=await client().auth.getSession();fail(error,'Gagal membaca sesi akun.');return data.session?.user||null};
+  const currentUser=async()=>{try{const {data,error}=await client().auth.getSession();if(error&&/auth session missing/i.test(error.message||''))return null;fail(error,'Gagal membaca sesi akun.');return data?.session?.user||null}catch(e){if(/auth session missing/i.test(e?.message||''))return null;throw e}};
   const fromRow=(r,publicView=false)=>({id:r.id,reporterName:r.reporter_name||'',reporterContact:r.reporter_contact||'',roadName:r.road_name||'',description:r.description||'',latitude:Number(r.latitude),longitude:Number(r.longitude),photoPath:r.photo_path||'',photoType:r.photo_type||'',createdAt:r.created_at,updatedAt:r.updated_at,status:r.status,adminNote:publicView?'':(r.admin_note||''),history:publicView?[]:(r.history||[]),verifiedAt:r.verified_at||null,verifiedBy:r.verified_by||null});
   const extFor=t=>({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[t]||'jpg');
   const newId=()=>'SR-'+Date.now().toString(36).toUpperCase()+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
