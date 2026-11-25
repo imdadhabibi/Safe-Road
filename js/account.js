@@ -2,7 +2,7 @@
 'use strict';
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let mode='login';
-const emailRedirectTo=()=>new URL('akun.html',window.location.href).toString();
+const emailRedirectTo=()=>'https://imdadhabibi.github.io/Safe-Road/akun.html';
 function setMode(next){mode=next;$('tab-login').classList.toggle('active',mode==='login');$('tab-register').classList.toggle('active',mode==='register');$('auth-submit').textContent=mode==='login'?'Login':'Buat akun';$('password').autocomplete=mode==='login'?'current-password':'new-password';$('auth-message').textContent='';$('resend-panel').classList.add('hidden')}
 async function showSession(){
  const {data,error}=await window.safeRoadSupabase.auth.getSession();if(error)throw error;
