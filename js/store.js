@@ -5,7 +5,9 @@
   const client=()=>{if(!window.safeRoadSupabaseConfigured||!window.safeRoadSupabase)throw new Error('Supabase belum dikonfigurasi.');return window.safeRoadSupabase};
   const fail=(e,m)=>{if(e){console.error(m,e);throw new Error(e.message||m)}};
   const isAdmin=async()=>{const {data,error}=await client().auth.getSession();fail(error,'Gagal membaca sesi.');return data.session?.user?.app_metadata?.role==='admin'};
-  const currentUser=async()=>{const {data,error}=await client().auth.getUser();fail(error,'Gagal membaca akun.');return data.user||null};
+  // getUser() calls the Auth user endpoint and can throw "Auth session missing!" for guests.
+  // getSession() is local/session-aware and safely returns null when the visitor is not signed in.
+  const currentUser=async()=>{const {data,error}=await client().auth.getSession();fail(error,'Gagal membaca sesi akun.');return data.session?.user||null};
   const fromRow=(r,publicView=false)=>({id:r.id,reporterName:r.reporter_name||'',reporterContact:r.reporter_contact||'',roadName:r.road_name||'',description:r.description||'',latitude:Number(r.latitude),longitude:Number(r.longitude),photoPath:r.photo_path||'',photoType:r.photo_type||'',createdAt:r.created_at,updatedAt:r.updated_at,status:r.status,adminNote:publicView?'':(r.admin_note||''),history:publicView?[]:(r.history||[]),verifiedAt:r.verified_at||null,verifiedBy:r.verified_by||null});
   const extFor=t=>({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[t]||'jpg');
   const newId=()=>'SR-'+Date.now().toString(36).toUpperCase()+'-'+crypto.randomUUID().slice(0,8).toUpperCase();
