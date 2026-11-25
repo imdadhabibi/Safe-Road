@@ -3,12 +3,13 @@
   const $ = id => document.getElementById(id);
   const fmt = n => Number(n || 0).toLocaleString('id-ID');
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const state = { map:null, accidents:null, blackspots:[], blacklinks:[], accidentLayer:null, blacklinkLayer:null, potholeLayer:null, userMarker:null, accuracy:null, selected:'blackspot', page:1, size:12, picking:false, watchId:null, profile:null };
+  const state = { map:null, accidents:null, blackspots:[], blacklinks:[], accidentLayer:null, blackspotPointLayer:null, blacklinkLayer:null, potholeLayer:null, userMarker:null, accuracy:null, selected:'blackspot', page:1, size:12, picking:false, watchId:null, profile:null };
   const files = {
     accidents:'data/accidents-coordinates.json',
     blackspot:'data/blackspot-segments.json.gz.b64',
     blacklink:'data/blacklink-roads.json.gz.b64',
-    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64'
+    blacklinkGeometry:'data/blacklink-geometry-10-roads.geojson.gz.b64',
+    blackspotPoints:'data/blackspot-cilacap-points.json.gz.b64'
   };
   async function getJSON(path) {
     const r=await fetch(path,{cache:'no-cache'});
@@ -41,7 +42,7 @@
     if(!window.L) { $('map-status').textContent='Leaflet gagal dimuat. Periksa koneksi internet.'; return; }
     state.map=L.map('map',{scrollWheelZoom:true}).setView([-7.72,109.02],10);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(state.map);
-    state.accidentLayer=L.featureGroup().addTo(state.map); state.blacklinkLayer=L.layerGroup().addTo(state.map); state.potholeLayer=L.layerGroup().addTo(state.map);
+    state.accidentLayer=L.featureGroup().addTo(state.map); state.blackspotPointLayer=L.layerGroup().addTo(state.map); state.blacklinkLayer=L.layerGroup().addTo(state.map); state.potholeLayer=L.layerGroup().addTo(state.map);
     state.map.on('click',e=>{
       if(!state.picking)return;
       $('latitude').value=e.latlng.lat.toFixed(7); $('longitude').value=e.latlng.lng.toFixed(7);
@@ -72,6 +73,19 @@
     $('stat-fatalities').textContent='195';
     $('map-status').textContent=fmt(fs.length)+' titik kecelakaan historis berhasil dimuat. Blackspot/Blacklink tersedia pada tabel analisis; geometri peta menunggu validasi GIS.';
     if(fs.length)state.map.fitBounds(state.accidentLayer.getBounds().pad(.06));
+  }
+  function renderBlackspotPoints(data) {
+    if(!state.map || !data)return;
+    state.blackspotPointLayer.clearLayers();
+    (data.points||[]).forEach(row=>{
+      const [lon,lat,roadIndex,distanceM,id]=row, road=(data.roads||[])[roadIndex]||'Nama ruas tidak tersedia';
+      L.circleMarker([lat,lon],{radius:5,color:'#a34a08',weight:1.5,fillColor:'#f28c28',fillOpacity:.9})
+       .bindPopup('<b>Lokasi Blackspot</b><br>'+esc(road)+'<br>ID titik: '+esc(id)+'<br>Jarak dari titik awal: '+fmt(distanceM)+' m<br><small>Sumber: Blackspot Cilacap.kml · koordinat geografis KML (WGS84)</small>')
+       .bindTooltip(esc(road),{sticky:true}).addTo(state.blackspotPointLayer);
+    });
+    if($('toggle-blackspot-points').checked)state.blackspotPointLayer.addTo(state.map);
+    $('blackspot-point-count').textContent=fmt((data.points||[]).length)+' titik pada '+fmt((data.roads||[]).length)+' ruas';
+    $('map-status').textContent='Layer Blackspot KML berhasil dimuat: '+fmt((data.points||[]).length)+' titik pada '+fmt((data.roads||[]).length)+' ruas. Data historis kecelakaan dan geometri Blacklink tetap tersedia sebagai layer terpisah.';
   }
   function renderBlacklinkGeometry(data) {
     if(!state.map || !data)return;
@@ -208,6 +222,7 @@
     $('mobile-menu').addEventListener('click',()=>{const open=$('main-nav').classList.toggle('open');$('mobile-menu').setAttribute('aria-expanded',String(open))});
     $('main-nav').querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>$('main-nav').classList.remove('open')));
     $('toggle-accidents').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.accidentLayer.addTo(state.map):state.map.removeLayer(state.accidentLayer)});
+    $('toggle-blackspot-points').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.blackspotPointLayer.addTo(state.map):state.map.removeLayer(state.blackspotPointLayer)});
     $('toggle-blacklink').addEventListener('change',e=>{if(!state.map)return;e.target.checked?state.blacklinkLayer.addTo(state.map):state.map.removeLayer(state.blacklinkLayer)});
     $('toggle-potholes').addEventListener('change',e=>{if(!state.map)return;e.target.checked?renderVerifiedReports():state.map.removeLayer(state.potholeLayer)});
     $('toggle-user').addEventListener('change',e=>{if(e.target.checked)return;if(state.userMarker)state.map.removeLayer(state.userMarker);if(state.accuracy)state.map.removeLayer(state.accuracy);state.userMarker=state.accuracy=null});
@@ -228,6 +243,8 @@
       const [acc,bs,bl]=await Promise.all([getJSON(files.accidents),getJSON(files.blackspot),getJSON(files.blacklink)]);
       state.accidents=acc;state.blackspots=bs;state.blacklinks=bl;
       renderAccidents();renderTable();
+      try { const points=await getJSON(files.blackspotPoints); renderBlackspotPoints(points); }
+      catch(pointError) { $('blackspot-point-count').textContent='Data titik gagal dimuat'; $('map-status').textContent='Data Blackspot KML gagal dimuat: '+pointError.message; }
       $('stat-blackspot').textContent=fmt(bs.length);$('stat-blacklink').textContent=fmt(bl.length);
       $('map-status').textContent='Data dimuat: '+fmt(acc.features.length)+' kejadian, '+fmt(bs.length)+' Blackspot dan '+fmt(bl.length)+' Blacklink. Sedang memuat geometri 10 ruas Blacklink dari GeoPackage.';
       try { const geometry=await getJSON(files.blacklinkGeometry); renderBlacklinkGeometry(geometry); }
